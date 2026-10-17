@@ -2,7 +2,7 @@
 
 ## Exact retrieval
 
-{req}`get.exact` `get ID...` must return records in requested order, including retired records.
+{req}`get.exact` `get ID...` must return a `records` array in requested order, including retired records and repetitions of requested IDs.
 
 {req}`get.missing` If any requested ID is missing or outside the selected language, `get` must fail rather than return a partial result.
 
@@ -16,7 +16,7 @@
 
 {req}`list.incompatible` Combining `--due` and `--retired` must fail.
 
-{req}`list.since` `--since DATE` must include records created at or after midnight on that date in the database’s timezone.
+{req}`list.since` `--since DATE` must include records whose creation timestamp, converted to the database timezone, has a local calendar date on or after DATE.
 
 {req}`list.search` `--search TEXT` must match case-sensitive literal substrings of compact JSON content serialized with object keys recursively sorted lexicographically and Unicode characters unescaped.
 
@@ -30,17 +30,21 @@
 
 {req}`list.pagination` Each list response must contain `records` and a `next_cursor`, which is null when no further matching records exist.
 
-{req}`list.cursor` In an unchanged database, following cursors with the same namespace and filters must enumerate each matching record exactly once in the specified order.
+{req}`list.cursor` In an unchanged database, following cursors with the same namespace and filters (with the original due cutoff retained even across midnight) must enumerate each matching record exactly once in the specified order.
 
-{req}`list.cursor-invalid` A malformed cursor or a cursor used with different namespace or filters must fail with a structured error.
+{req}`list.cursor-invalid` A malformed cursor or a cursor used with a different database, namespace, or filters must fail with a structured error.
+
+Page size may change between pages; it is not a filter. Due cursors retain their original local-date cutoff.
 
 Pagination does not promise a snapshot across concurrent mutations; restart listing when a consistent fresh view is needed. The search definition is intentionally simple and reproducible, not linguistic or semantic search.
+
+{req}`list.cursor-database` A cursor must be bound to the database identity assigned at initialization; copying a database preserves that identity.
 
 ## Context
 
 {req}`context.clock` `context` must return `now`, `today`, and `timezone` using {time.instant}`the command’s clock snapshot`.
 
-{req}`context.languages` `context` must return sorted language names represented by any stored record, including retired records.
+{req}`context.languages` `context` must return a `languages` array of sorted language names represented by any stored record, including retired records.
 
 {req}`context.unselected` Without `--language`, `context` must return clock and language information without returning record content.
 
@@ -55,5 +59,9 @@ Pagination does not promise a snapshot across concurrent mutations; restart list
 {req}`context.pin-limit` The context limit must not truncate pinned records or subtract them from due or recent page sizes.
 
 {req}`context.read-only` Retrieving context must not modify learning records, schedules, or activity timestamps.
+
+{req}`context.shape` Selected context must expose `language`, `pinned` (record array), `due`, and `recent` (each with `records` and `next_cursor`); unselected context must omit these four keys.
+
+{req}`context.limit` Context must accept the same limit domain and default as `list --limit`.
 
 A record may appear in multiple sections; its ID establishes that it is the same record. Context does not claim a “last practice” time because it cannot interpret arbitrary `kind` values. The tutor can derive that from its own observations. Full pinned context is deliberate: the skill should keep it concise.

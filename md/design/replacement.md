@@ -2,6 +2,8 @@
 
 `replace` takes an object with `ids` and `replacements` arrays. Each replacement entry contains a required `content`, optional boolean `pinned`, and optional `review`. The CLI owns all other envelope fields.
 
+{req}`replace.types` Predecessor IDs must be strings, and each replacement entry must be an object with required `content` (including null as a valid value), optional boolean `pinned`, and optional `review`.
+
 ## Validation and atomicity
 
 {req}`replace.input` The CLI must require both `ids` and `replacements` arrays in a replacement request.
@@ -30,15 +32,15 @@ These rules give creation, rewriting, splitting, merging, and deletion the same 
 
 {req}`replace.no-inheritance` A successor must not inherit a predecessor’s review date or pin state implicitly.
 
-{req}`replace.cancel-review` Retiring a predecessor must remove its pending review from active scheduling while retaining the previous date in the replacement event.
+{req}`replace.cancel-review` Retiring a predecessor must remove its pending review from active scheduling while retaining the previous date in the replacement event; the retired record’s `review_on` must be null.
 
 {req}`replace.successor-review` A review supplied on a replacement entry must be applied to that successor within the replacement transaction.
 
 {req}`replace.unscheduled-valid` Omitting a successor review, or supplying `review: null`, must create an unscheduled successor without failing the operation.
 
-{req}`replace.response.created` A successful replacement response must return successor IDs in replacement-entry order.
+{req}`replace.response.created` A successful replacement response must return successor IDs in replacement-entry order in `created`.
 
-{req}`replace.response.retired` A successful replacement response must report each predecessor’s ID, previous review date, and previous pin state.
+{req}`replace.response.retired` A successful replacement response must contain `retired` in predecessor order, with `id`, `previous_review_on`, and `previous_pinned` for each predecessor.
 
 {req}`replace.response.unscheduled` A successful replacement response must include `needs_review_schedule`, containing exactly the unscheduled successor IDs.
 
@@ -47,6 +49,8 @@ These rules give creation, rewriting, splitting, merging, and deletion the same 
 {req}`replace.response.pin-reminder` When at least one predecessor was pinned and successors exist, the response must include a reminder to consider successor pinning.
 
 Deletion has no successors and therefore no request to schedule or pin successors. A reminder is informational; it does not turn a successful operation into an error.
+
+{req}`replace.response.reminders` Every successful replacement response must contain a `reminders` array of informational strings, empty when no reminder is needed.
 
 ## Example response
 

@@ -12,9 +12,9 @@ A review belongs to a specific record ID. Content replacement creates new identi
 
 {req}`time.interval-domain` Relative intervals must be nonnegative integers; zero must mean today.
 
-{req}`time.date-format` Explicit dates must be valid Gregorian calendar dates in `YYYY-MM-DD` form.
+{req}`time.date-format` Explicit dates must be valid Gregorian calendar dates in `YYYY-MM-DD` form, with years 0001 through 9999.
 
-{req}`time.overflow` An interval whose resulting date cannot be represented must fail without mutation.
+{req}`time.overflow` An interval whose resulting date falls outside years 0001 through 9999 must fail without mutation.
 
 {req}`time.due` An active scheduled record must be due exactly when its review date is on or before today.
 
@@ -36,7 +36,7 @@ A calendar day is not a fixed 24-hour duration. Tests should cover daylight-savi
 
 {req}`schedule.clear` Clearing a review must leave the record unscheduled, including when it was already unscheduled.
 
-{req}`schedule.response` Scheduling must return each affected ID with its resolved `review_on` date, or null when cleared.
+{req}`schedule.response` Scheduling must return a `records` array in input order, each entry containing `id` and its resolved `review_on` date, or null when cleared.
 
 {req}`schedule.entry` A non-null replacement `review` must contain exactly one of `in_days` or `on`, with the same validation as the corresponding schedule option.
 

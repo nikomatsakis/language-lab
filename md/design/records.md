@@ -8,7 +8,7 @@
 
 {req}`database.init.exclusive` Initializing an existing path must fail without modifying its contents.
 
-{req}`database.open.existing` Commands other than `init` must fail when the selected database does not exist, rather than creating it.
+{req}`database.open.existing` Data commands other than `init` must fail when the selected database does not exist, rather than creating it.
 
 {req}`database.timezone` Initialization must persist a valid IANA timezone identifier supplied through `--timezone`.
 
@@ -18,15 +18,19 @@
 
 Temporary SQLite journals are permitted; “one file” describes durable storage when commands have completed normally.
 
+{req}`database.init.failure` Failed initialization must remove any newly created partial database and must never remove or modify a preexisting path.
+
+{req}`database.invalid` Opening a file that is not a Language Lab database must fail without modifying the file.
+
 ## Languages
 
 {req}`language.namespace` Every record must belong to exactly one language namespace.
 
-{req}`language.exact` Language names must be nonempty strings compared exactly, without implicit case folding or alias conversion.
+{req}`language.exact` Language names must be nonempty strings compared exactly, without implicit case folding or alias conversion; an explicitly empty `--language` must fail even when querying an empty database.
 
 {req}`language.implicit` Creating the first record in a namespace must make that namespace available without a separate language-registration operation.
 
-{req}`language.isolation` A language-scoped command must not read or mutate records in another namespace.
+{req}`language.isolation` A language-scoped command must not return record content from or mutate records in another namespace; the global language-name list in context is permitted.
 
 {req}`language.empty` Querying a namespace with no records must return empty results rather than fail.
 

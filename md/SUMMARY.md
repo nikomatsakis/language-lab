@@ -10,3 +10,4 @@
   - [CLI contract](design/cli.md)
   - [Tutor skill](design/skill.md)
   - [Requirement rendering](design/rendering.md)
+  - [Requirement evidence](design/evidence.md)

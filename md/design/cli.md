@@ -5,6 +5,7 @@ The executable is named `language-lab`. The renderer is a separate executable na
 ## Command surface
 
 ```text
+language-lab --version
 language-lab init PATH --timezone ZONE
 language-lab --db PATH [--language LANG] context [--limit N]
 language-lab --db PATH --language LANG get ID...
@@ -37,7 +38,15 @@ language-lab --db PATH --language LANG schedule ID...
 
 {req}`cli.no-extra-operands` Missing required arguments, unknown options, and unexpected positional arguments must fail without database mutation.
 
-Help output is human-readable and exempt from the data-command JSON contract. Error codes should distinguish invalid input, missing database, unsupported schema, missing record, retired record, and storage failure; wording may evolve.
+{req}`cli.version` `language-lab --version` must print `language-lab VERSION`, with VERSION equal to the embedded Cargo package version, and exit zero without opening a database.
+
+{req}`cli.operands` `get` and `schedule` must require at least one ID.
+
+{req}`cli.error-codes` Error codes must distinguish `invalid_input`, `database_missing`, `database_invalid`, `schema_unsupported`, `record_missing`, `record_retired`, and `storage_error`; invalid arguments, JSON, ranges, or cursors use `invalid_input`, and IDs outside the selected language use `record_missing`.
+
+{req}`cli.init-response` Successful initialization must return `database` (the supplied path) and `timezone` (the validated identifier).
+
+Help and version output are human-readable and exempt from the data-command JSON contract. Messages may evolve. Existing-path initialization and filesystem/SQLite failures use `storage_error`.
 
 ## Response shapes
 
