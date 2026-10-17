@@ -157,3 +157,29 @@ publishing. No personal access token or separate deployment branch is required.
 
 See [GitHub’s custom Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
 for repository setup.
+
+## Validate requirement evidence
+
+The `language-lab-ci` utility checks whether recorded implementation and test
+reviews are still current:
+
+```sh
+cargo run --locked --manifest-path language-lab-ci/Cargo.toml -- check
+```
+
+Each requirement needs an `evidence/REQUIREMENT_ID.json` file containing its exact
+text, source/test line excerpts, and a justification. CI compares the text and
+excerpts; it deliberately does not evaluate the justification. Missing evidence
+or changed text fails the check and requests revalidation.
+
+Use the repository’s **revalidate** skill to perform that review. It first
+requires a scenario and edge-case checklist, then inspection of implementation
+and tests. If anything is missing, the reviewer leaves the evidence file absent
+and reports the gaps. Do not regenerate snapshots merely to silence CI.
+
+The checker reads requirement paragraphs from chapters listed in `SUMMARY.md`.
+Its `requirements` command prints the extracted text, and its `input` command
+produces exact line-range snapshots. Run `--help` for their arguments. The
+**Requirement evidence** workflow is independent of Pages publication; it is
+expected to fail until the proposed requirements have been implemented, tested,
+and revalidated.

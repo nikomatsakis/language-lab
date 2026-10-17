@@ -1,0 +1,28 @@
+name: Requirement evidence
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  RUSTUP_TOOLCHAIN: stable
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install stable Rust
+        run: rustup toolchain install stable --profile minimal
+      - name: Test the checker
+        run: cargo test --locked --manifest-path language-lab-ci/Cargo.toml
+      - name: Test the shared requirement parser and renderer
+        run: cargo test --locked --manifest-path mdbook-language-lab/Cargo.toml
+      - name: Check every requirement's evidence
+        run: cargo run --locked --manifest-path language-lab-ci/Cargo.toml -- check
