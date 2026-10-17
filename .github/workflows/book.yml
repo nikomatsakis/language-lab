@@ -1,0 +1,77 @@
+name: Publish book
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Serialize publications without cancelling a deployment already in progress.
+concurrency:
+  group: book-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  MDBOOK_VERSION: 0.5.4
+  RUSTUP_TOOLCHAIN: stable
+
+jobs:
+  build:
+    if: github.event_name == 'pull_request' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install stable Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Install mdBook
+        run: |
+          mkdir -p "$RUNNER_TEMP/mdbook-bin"
+          curl --fail --silent --show-error --location \
+            "https://github.com/rust-lang/mdBook/releases/download/v${MDBOOK_VERSION}/mdbook-v${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
+            --output "$RUNNER_TEMP/mdbook.tar.gz"
+          tar -xzf "$RUNNER_TEMP/mdbook.tar.gz" -C "$RUNNER_TEMP/mdbook-bin" mdbook
+          echo "$RUNNER_TEMP/mdbook-bin" >> "$GITHUB_PATH"
+
+      - name: Test requirement renderer
+        run: cargo test --locked --manifest-path mdbook-language-lab/Cargo.toml
+
+      - name: Configure Pages
+        if: github.event_name != 'pull_request'
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Build book
+        env:
+          # Also makes the generated 404 page work on project Pages sites.
+          MDBOOK_OUTPUT__HTML__SITE_URL: ${{ format('{0}/', steps.pages.outputs.base_path) }}
+        run: mdbook build
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: book
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

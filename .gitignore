@@ -1,0 +1,8 @@
+# Generated mdBook site.
+/book/
+
+# Cargo build output, including nested crates and a future root workspace.
+target/
+
+# macOS directory metadata.
+.DS_Store
