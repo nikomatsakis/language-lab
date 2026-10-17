@@ -1,0 +1,36 @@
+{
+  "requirement": "The checker must read `book.src` from `book.toml` (default `src`) and inspect local chapters linked from that directory’s `SUMMARY.md`, including nested chapters, while skipping draft and external links and unlisted files.",
+  "inputs": [
+    {
+      "path": "language-lab-ci/src/lib.rs",
+      "line_start": 130,
+      "line_end": 181,
+      "contents": "pub fn discover(root: &Path) -> Result<Vec<Requirement>> {\n    let root = root.canonicalize().map_err(|e| e.to_string())?;\n    let config: toml::Value = read_book(&root, Path::new(\"book.toml\"))?\n        .parse()\n        .map_err(|e| format!(\"book.toml: {e}\"))?;\n    if config.get(\"book\").is_some_and(|book| !book.is_table()) {\n        return Err(\"book must be a TOML table\".into());\n    }\n    let src = match config.get(\"book\").and_then(|b| b.get(\"src\")) {\n        Some(value) => value.as_str().ok_or(\"book.src must be a string\")?,\n        None => \"src\",\n    };\n    let summary = read_book(&root, &Path::new(src).join(\"SUMMARY.md\"))?;\n    let mut chapters = BTreeSet::new();\n    for event in Parser::new(&summary) {\n        if let Event::Start(Tag::Link { dest_url, .. }) = event {\n            let dest = dest_url.as_ref();\n            if dest.is_empty()\n                || dest.starts_with('#')\n                || dest.starts_with(\"//\")\n                || dest.split_once(':').is_some_and(|(scheme, _)| {\n                    scheme.starts_with(|c: char| c.is_ascii_alphabetic())\n                        && scheme\n                            .chars()\n                            .all(|c| c.is_ascii_alphanumeric() || \"+-.\".contains(c))\n                })\n            {\n                continue;\n            }\n            let dest = dest.split('#').next().unwrap();\n            chapters.insert(Path::new(src).join(dest));\n        }\n    }\n    let mut found: BTreeMap<String, Requirement> = BTreeMap::new();\n    for chapter in chapters {\n        let source = read_book(&root, &chapter)?;\n        let path = chapter.to_string_lossy().replace('\\\\', \"/\");\n        for requirement in extract(&path, &source)? {\n            if let Some(previous) = found.get(&requirement.id) {\n                return Err(format!(\n                    \"duplicate requirement {} in {} and {}\",\n                    requirement.id, previous.path, path\n                ));\n            }\n            found.insert(requirement.id.clone(), requirement);\n        }\n    }\n    if found.is_empty() {\n        return Err(\"no requirements found in the book; refusing a vacuous check\".into());\n    }\n    Ok(found.into_values().collect())\n}\n"
+    },
+    {
+      "path": "language-lab-ci/src/lib.rs",
+      "line_start": 67,
+      "line_end": 85,
+      "contents": "fn read_book(root: &Path, relative: &Path) -> Result<String> {\n    if relative.is_absolute() {\n        return Err(format!(\n            \"book paths must be relative: {}\",\n            relative.display()\n        ));\n    }\n    let path = root\n        .join(relative)\n        .canonicalize()\n        .map_err(|e| format!(\"{}: {e}\", relative.display()))?;\n    if !path.starts_with(root) {\n        return Err(format!(\n            \"book path escapes repository: {}\",\n            relative.display()\n        ));\n    }\n    fs::read_to_string(path).map_err(|e| format!(\"{}: {e}\", relative.display()))\n}\n"
+    },
+    {
+      "path": "language-lab-ci/tests/evidence.rs",
+      "line_start": 90,
+      "line_end": 100,
+      "contents": "fn discovers_only_listed_chapters_and_rejects_duplicates() {\n    let f = Fixture::new();\n    f.write(\"chapters/unused.md\", \"{req}`unused.rule` Not in book.\");\n    assert_eq!(discover(&f.0).unwrap().len(), 1);\n    f.write(\n        \"chapters/SUMMARY.md\",\n        \"- [First](nested/contract.md)\\n- [Second](second.md)\\n\",\n    );\n    f.write(\"chapters/second.md\", \"{req}`test.rule` Duplicate.\");\n    assert!(discover(&f.0).unwrap_err().contains(\"duplicate\"));\n}\n"
+    },
+    {
+      "path": "language-lab-ci/tests/evidence.rs",
+      "line_start": 279,
+      "line_end": 291,
+      "contents": "fn default_source_external_links_and_nested_summary() {\n    let f = Fixture::new();\n    f.write(\"book.toml\", \"[book]\\ntitle = 'Test'\\n\");\n    f.write(\"src/SUMMARY.md\", \"# Summary\\n- [Root](root.md)\\n  - [Nested](deep/leaf.md#anchor)\\n- [Web](//example.com/book)\\n- [Mail](mailto:a@example.com)\\n- [URN](urn:example:test)\\n- [Draft]()\\n- [Anchor](#here)\\n\");\n    f.write(\"src/root.md\", \"{req}`test.root` Root.\");\n    f.write(\"src/deep/leaf.md\", \"{req}`test.leaf` Leaf.\");\n    let ids: Vec<_> = discover(&f.0).unwrap().into_iter().map(|r| r.id).collect();\n    assert_eq!(ids, [\"test.leaf\", \"test.root\"]);\n    f.write(\"book.toml\", \"book = 3\");\n    assert!(discover(&f.0).unwrap_err().contains(\"table\"));\n    f.write(\"book.toml\", \"[invalid\");\n    assert!(discover(&f.0).is_err());\n}\n"
+    },
+    {
+      "path": "language-lab-ci/tests/evidence.rs",
+      "line_start": 380,
+      "line_end": 394,
+      "contents": "fn parent_relative_chapters_are_allowed_only_inside_repository() {\n    let f = Fixture::new();\n    f.write(\"chapters/SUMMARY.md\", \"- [Shared](../shared/chapter.md)\");\n    f.write(\"shared/chapter.md\", \"{req}`test.shared` Shared contract.\");\n    assert_eq!(discover(&f.0).unwrap()[0].id, \"test.shared\");\n    f.write(\"book.toml\", \"[book]\\nsrc = './src/../chapters'\");\n    assert_eq!(discover(&f.0).unwrap()[0].id, \"test.shared\");\n    let other = Fixture::new();\n    let sibling = other.0.file_name().unwrap().to_str().unwrap();\n    f.write(\n        \"chapters/SUMMARY.md\",\n        &format!(\"- [Escape](../../{sibling}/chapters/nested/contract.md)\"),\n    );\n    assert!(discover(&f.0).unwrap_err().contains(\"escapes repository\"));\n}\n"
+    }
+  ],
+  "justification": "Scenarios: explicit/default source directory, nested local links, fragments, absent drafts, external URI schemes, unlisted files and parent-relative links. discover obtains src from TOML and only visits SUMMARY link targets; read_book resolves contained parent paths without applying the stricter evidence-input policy. The tests verify exactly the expected discovered IDs and reject repository escapes. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions."
+}

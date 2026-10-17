@@ -1,0 +1,30 @@
+{
+  "requirement": "After installation, the skill must instruct the tutor to verify the exact binary version and stop data operations if installation fails or the expected version is not available.",
+  "inputs": [
+    {
+      "path": "skills/language-lab/SKILL.md",
+      "line_start": 12,
+      "line_end": 20,
+      "contents": "The expected CLI version is **0.1.0**. Before using the CLI for data operations, run `language-lab --version` and compare the reported version with this exact version. Reuse this check within the conversation unless the installation or skill changes. A newer version is still a mismatch.\n\nIf the executable is missing or differs, run:\n\n```sh\ncargo install --locked --path \"<absolute path to this skill>/cli\"\n```\n\nResolve the embedded `cli` directory relative to this SKILL.md, not the current working directory. After installation, run `language-lab --version` again and require exactly `language-lab 0.1.0`. If Cargo is unavailable, installation fails, or the expected binary cannot be found on PATH, stop data operations and explain the concrete failure. Do not silently use a different version, repeatedly reinstall, or claim memory was saved. Resolve a PATH issue and verify again before proceeding.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/scenarios.md",
+      "line_start": 39,
+      "line_end": 42,
+      "contents": "10. **Installation matrix:** In separate cases the executable is absent; reports\n    0.0.9; reports 0.2.0; reports 0.1.0; Cargo is absent; installation fails; or\n    installation succeeds but PATH still resolves 0.0.9. The skill is installed\n    at `/tmp/my skills/language-lab`, outside the current directory.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/review.md",
+      "line_start": 1,
+      "line_end": 7,
+      "contents": "# Independent tutor instruction review\n\nReviewed 2026-10-17 by the spec-review subagent. I read only SKILL.md and the\nscenario inputs before writing these decisions; no expected answers were read.\nThese are dry-run actions derived from the shipped instructions. No learner\ndatabase commands or writes were executed. This checks the instruction contract,\nnot universal compliance by an arbitrary model or host.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/review.md",
+      "line_start": 61,
+      "line_end": 68,
+      "contents": "10. **Installation matrix.** The exact expected version is `language-lab 0.1.0`.\n    If missing, 0.0.9, or 0.2.0, install with\n    `cargo install --locked --path \"/tmp/my skills/language-lab/cli\"`, resolved\n    relative to the skill, then verify the version again. If already 0.1.0, skip\n    installation. If Cargo is absent or installation fails, stop data operations\n    and report the concrete failure without claiming saved memory. If installation\n    succeeds but PATH returns 0.0.9, stop data operations, resolve PATH, then\n    reverify; do not repeatedly reinstall or run the incompatible executable.\n"
+    }
+  ],
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. The response verifies after install and halts data operations on missing Cargo, failure, or stale PATH; resolving PATH requires re-verification. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+}

@@ -62,3 +62,51 @@ fn renderer_negotiation() {
         assert!(output.stdout.is_empty());
     }
 }
+
+#[test]
+fn semantic_and_protocol_errors_never_publish_partial_books() {
+    let cases = [
+        (
+            json!([{"renderer":"html"},{"items":[
+                {"Chapter":{"path":"one.md","content":"{req}`a.b` Rule.","sub_items":[]}},
+                {"Chapter":{"path":"two.md","content":"{req}`a.b` Duplicate.","sub_items":[]}}
+            ]}]),
+            vec!["duplicate", "a.b", "one.md", "two.md"],
+        ),
+        (
+            json!([{"renderer":"html"},{"items":[
+                {"Chapter":{"path":"one.md","content":"{req}`a.b` Rule.","sub_items":[]}},
+                {"Chapter":{"path":"two.md","content":"{unknown.id}`Missing`", "sub_items":[]}}
+            ]}]),
+            vec!["unknown.id", "two.md"],
+        ),
+        (
+            json!([{"renderer":"html"},{"items":[
+                {"Chapter":{"path":"bad.md","content":"{req}`Invalid.id`", "sub_items":[]}}
+            ]}]),
+            vec!["invalid requirement", "bad.md"],
+        ),
+        (json!([{"renderer":"latex"},{"items":[]}]), vec!["html"]),
+        (json!([{"renderer":"html"},{"items":{}}]), vec!["array"]),
+    ];
+    for (input, fragments) in cases {
+        let output = execute(&input);
+        assert!(!output.status.success());
+        assert!(output.stdout.is_empty());
+        let error = String::from_utf8(output.stderr).unwrap();
+        for fragment in fragments {
+            assert!(error.contains(fragment), "{error}");
+        }
+    }
+    let mut child = Command::new(env!("CARGO_BIN_EXE_mdbook-language-lab"))
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child.stdin.take().unwrap().write_all(b"not JSON").unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert!(!output.status.success());
+    assert!(output.stdout.is_empty());
+    assert!(!output.stderr.is_empty());
+}

@@ -1,0 +1,36 @@
+{
+  "requirement": "The CLI must derive today’s date from that instant in the database’s timezone.",
+  "inputs": [
+    {
+      "path": "skills/language-lab/cli/src/lib.rs",
+      "line_start": 219,
+      "line_end": 221,
+      "contents": "    pub fn today(&self) -> NaiveDate {\n        self.now.with_timezone(&self.timezone).date_naive()\n    }\n"
+    },
+    {
+      "path": "skills/language-lab/cli/src/lib.rs",
+      "line_start": 222,
+      "line_end": 237,
+      "contents": "    fn resolve(&self, review: &Review) -> Result<String> {\n        match (&review.in_days, &review.on) {\n            (Some(n), None) => {\n                let d = self\n                    .today()\n                    .checked_add_days(Days::new(*n))\n                    .ok_or_else(|| invalid(\"date overflow\"))?;\n                if !(1..=9999).contains(&d.year()) {\n                    return Err(invalid(\"date overflow\"));\n                }\n                Ok(d.to_string())\n            }\n            (None, Some(s)) => Ok(date(s)?.to_string()),\n            _ => Err(invalid(\"review requires exactly one of in_days or on\")),\n        }\n    }\n"
+    },
+    {
+      "path": "skills/language-lab/cli/src/lib.rs",
+      "line_start": 47,
+      "line_end": 54,
+      "contents": "fn date(s: &str) -> Result<NaiveDate> {\n    let d =\n        NaiveDate::parse_from_str(s, \"%Y-%m-%d\").map_err(|_| invalid(\"invalid calendar date\"))?;\n    if !(1..=9999).contains(&d.year()) || d.format(\"%Y-%m-%d\").to_string() != s {\n        return Err(invalid(\"date must be YYYY-MM-DD, years 0001..9999\"));\n    }\n    Ok(d)\n}\n"
+    },
+    {
+      "path": "skills/language-lab/cli/tests/system.rs",
+      "line_start": 323,
+      "line_end": 422,
+      "contents": "fn calendar_days_dates_and_schedule_identity() {\n    for (zone, now, today, next) in [\n        (\n            \"Europe/Berlin\",\n            \"2026-03-28T23:30:00Z\",\n            \"2026-03-29\",\n            \"2026-03-30\",\n        ),\n        (\n            \"Europe/Berlin\",\n            \"2026-10-24T22:30:00Z\",\n            \"2026-10-25\",\n            \"2026-10-26\",\n        ),\n        (\"UTC\", \"2024-02-28T12:00:00Z\", \"2024-02-28\", \"2024-02-29\"),\n        (\n            \"Pacific/Apia\",\n            \"2011-12-29T12:00:00Z\",\n            \"2011-12-29\",\n            \"2011-12-30\",\n        ),\n    ] {\n        let (dir, _) = setup(zone);\n        let mut db = Database::open(&dir.path().join(\"db\"), instant(now)).unwrap();\n        assert_eq!(db.today().to_string(), today);\n        let id = add(&mut db, \"el\", json!(1));\n        let original = record(&db, \"el\", &id);\n        assert_eq!(\n            db.schedule(\"el\", std::slice::from_ref(&id), review(1))\n                .unwrap()[\"records\"][0][\"review_on\"],\n            next\n        );\n        db.schedule(\"el\", std::slice::from_ref(&id), review(0))\n            .unwrap();\n        assert_eq!(\n            db.list(\n                \"el\",\n                Filters {\n                    due: true,\n                    ..Default::default()\n                },\n                20,\n                None\n            )\n            .unwrap()[\"records\"]\n                .as_array()\n                .unwrap()\n                .len(),\n            1\n        );\n        db.schedule(\"el\", std::slice::from_ref(&id), None).unwrap();\n        db.schedule(\"el\", std::slice::from_ref(&id), None).unwrap();\n        assert_eq!(record(&db, \"el\", &id), original);\n    }\n    let (dir, mut db) = setup(\"UTC\");\n    let id = add(&mut db, \"el\", json!(1));\n    for s in [\n        \"0000-01-01\",\n        \"10000-01-01\",\n        \"2026-2-01\",\n        \"2026-02-29\",\n        \"2026-13-01\",\n        \"2026-01-01x\",\n    ] {\n        assert!(db\n            .schedule(\n                \"el\",\n                std::slice::from_ref(&id),\n                Some(Review {\n                    on: Some(s.into()),\n                    in_days: None\n                })\n            )\n            .is_err());\n    }\n    for s in [\"0001-01-01\", \"9999-12-31\", \"2024-02-29\"] {\n        assert_eq!(\n            db.schedule(\n                \"el\",\n                std::slice::from_ref(&id),\n                Some(Review {\n                    on: Some(s.into()),\n                    in_days: None\n                })\n            )\n            .unwrap()[\"records\"][0][\"review_on\"],\n            s\n        );\n    }\n    let before = record(&db, \"el\", &id);\n    assert!(db\n        .schedule(\"el\", std::slice::from_ref(&id), review(u64::MAX))\n        .is_err());\n    assert_eq!(record(&db, \"el\", &id), before);\n    let mut db = Database::open(&dir.path().join(\"db\"), instant(\"9999-12-31T12:00:00Z\")).unwrap();\n    assert!(db\n        .schedule(\"el\", std::slice::from_ref(&id), review(1))\n        .is_err());\n    assert_eq!(record(&db, \"el\", &id), before);\n}\n"
+    },
+    {
+      "path": "skills/language-lab/cli/tests/system.rs",
+      "line_start": 1,
+      "line_end": 37,
+      "contents": "use chrono::{DateTime, Utc};\nuse language_lab::{Database, Filters, Replacement, Review};\nuse serde_json::{json, Value};\nuse tempfile::TempDir;\nfn instant(s: &str) -> DateTime<Utc> {\n    s.parse().unwrap()\n}\nconst NOW: &str = \"2026-10-17T12:00:00Z\";\nfn setup(zone: &str) -> (TempDir, Database) {\n    let dir = tempfile::tempdir().unwrap();\n    let p = dir.path().join(\"db\");\n    Database::init(&p, zone).unwrap();\n    let db = Database::open(&p, instant(NOW)).unwrap();\n    (dir, db)\n}\nfn request(v: Value) -> Replacement {\n    serde_json::from_value(v).unwrap()\n}\nfn add(db: &mut Database, lang: &str, content: Value) -> String {\n    db.replace(\n        lang,\n        request(json!({\"ids\":[],\"replacements\":[{\"content\":content}]})),\n    )\n    .unwrap()[\"created\"][0]\n        .as_str()\n        .unwrap()\n        .into()\n}\nfn record(db: &Database, lang: &str, id: &str) -> Value {\n    db.get(lang, &[id.into()]).unwrap()[\"records\"][0].clone()\n}\nfn review(days: u64) -> Option<Review> {\n    Some(Review {\n        in_days: Some(days),\n        on: None,\n    })\n}\n"
+    }
+  ],
+  "justification": "Reviewed scenarios: Tests resolve dates in Europe/Berlin at spring/fall DST, a UTC leap day, and Pacific/Apia around a skipped local date. Calendar addition operates on NaiveDate rather than elapsed seconds; zero resolves today and one advances the calendar date. Implementation and assertion excerpts: skills/language-lab/cli/src/lib.rs:219-221; skills/language-lab/cli/src/lib.rs:222-237; skills/language-lab/cli/src/lib.rs:47-54; skills/language-lab/cli/tests/system.rs:323-422; skills/language-lab/cli/tests/system.rs:1-37. Validation: cargo test --locked --manifest-path skills/language-lab/cli/Cargo.toml (20 tests passed), plus cargo clippy --locked --manifest-path skills/language-lab/cli/Cargo.toml --all-targets -- -D warnings. The source excerpts show the mechanism; test excerpts and their helpers exercise the described observable outcomes."
+}

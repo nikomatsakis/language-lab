@@ -1,0 +1,30 @@
+{
+  "requirement": "Input line ranges must be one-based, inclusive, ordered, and within the file’s lines; an empty file must have no selectable lines.",
+  "inputs": [
+    {
+      "path": "language-lab-ci/src/lib.rs",
+      "line_start": 184,
+      "line_end": 196,
+      "contents": "pub fn lines(contents: &str, start: usize, end: usize) -> Result<String> {\n    if start == 0 || end < start {\n        return Err(format!(\"invalid inclusive line range {start}..{end}\"));\n    }\n    let lines: Vec<_> = contents.split_inclusive('\\n').collect();\n    if end > lines.len() {\n        return Err(format!(\n            \"line range {start}..{end} exceeds file length {}\",\n            lines.len()\n        ));\n    }\n    Ok(lines[start - 1..end].concat())\n}\n"
+    },
+    {
+      "path": "language-lab-ci/src/lib.rs",
+      "line_start": 198,
+      "line_end": 207,
+      "contents": "pub fn snapshot(root: &Path, path: &str, start: usize, end: usize) -> Result<Input> {\n    let root = root.canonicalize().map_err(|e| e.to_string())?;\n    let text = read(&root, Path::new(path))?;\n    Ok(Input {\n        path: path.into(),\n        line_start: start,\n        line_end: end,\n        contents: lines(&text, start, end)?,\n    })\n}\n"
+    },
+    {
+      "path": "language-lab-ci/tests/evidence.rs",
+      "line_start": 160,
+      "line_end": 173,
+      "contents": "fn line_ranges_preserve_endings_unicode_and_final_newline() {\n    assert_eq!(lines(\"α\\r\\nβ\\r\\nγ\", 1, 2).unwrap(), \"α\\r\\nβ\\r\\n\");\n    assert_eq!(lines(\"α\\r\\nβ\\r\\nγ\", 3, 3).unwrap(), \"γ\");\n    assert_eq!(lines(\"\\n\", 1, 1).unwrap(), \"\\n\");\n    for (text, start, end) in [\n        (\"\", 1, 1),\n        (\"a\\n\", 0, 1),\n        (\"a\\nb\", 2, 1),\n        (\"a\\n\", 2, 2),\n        (\"a\", 1, usize::MAX),\n    ] {\n        assert!(lines(text, start, end).is_err());\n    }\n}\n"
+    },
+    {
+      "path": "language-lab-ci/tests/evidence.rs",
+      "line_start": 176,
+      "line_end": 198,
+      "contents": "fn schema_requires_fields_and_nonempty_inputs() {\n    let f = Fixture::new();\n    for field in [\"requirement\", \"inputs\", \"justification\"] {\n        let mut evidence = f.evidence();\n        evidence.as_object_mut().unwrap().remove(field);\n        f.save(&evidence);\n        assert!(!f.errors().is_empty());\n    }\n    let mut evidence = f.evidence();\n    evidence[\"inputs\"] = json!([]);\n    f.save(&evidence);\n    assert!(f.errors()[0].contains(\"at least one\"));\n    evidence = f.evidence();\n    evidence[\"extra\"] = true.into();\n    f.save(&evidence);\n    assert!(!f.errors().is_empty());\n    for n in [json!(0), json!(-1), json!(1.5), json!(999)] {\n        evidence = f.evidence();\n        evidence[\"inputs\"][0][\"line_start\"] = n;\n        f.save(&evidence);\n        assert!(!f.errors().is_empty());\n    }\n}\n"
+    }
+  ],
+  "justification": "Scenarios: first/last line, one line, final line without newline, empty file, zero bounds, reversed bounds, and out-of-file bounds including maximum usize. lines checks bounds before slicing split_inclusive lines. Tests assert exact valid slices and reject invalid selections. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions."
+}

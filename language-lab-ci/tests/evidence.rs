@@ -59,7 +59,7 @@ impl Drop for Fixture {
 
 #[test]
 fn extracts_multiline_markdown_and_ignores_examples() {
-    let source = "# Header\n\n```md\n{req}`fake.fenced` Nope.\n```\n\n    {req}`fake.indented` Nope.\n\n``{req}`fake.inline` ``\n\n\\{req}`fake.escaped` Nope.\n\n[{req}`fake.link`](url)\n\n{req}`real.rule` Keep **all** data,\nincluding {other.rule}`references`.\n\nRationale is separate.\n";
+    let source = "# Header\n\n```md\n{req}`fake.fenced` Nope.\n```\n\n    {req}`fake.indented` Nope.\n\n``{req}`fake.inline` ``\n\n\\{req}`fake.escaped` Nope.\n\n[{req}`fake.link`](url)\n\n![{req}`fake.image`](image.png)\n\n{req}`real.rule` Keep **all** data,\nincluding {other.rule}`references`.\n\nRationale is separate.\n";
     let requirements = extract("chapter.md", source).unwrap();
     assert_eq!(requirements.len(), 1);
     assert_eq!(requirements[0].id, "real.rule");
@@ -239,6 +239,10 @@ fn cli_helpers_return_exact_text_and_failures_aggregate() {
     assert!(output.status.success());
     let data: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(data, f.evidence()["inputs"][0]);
+    assert!(
+        !f.0.join("evidence").exists(),
+        "helpers must not write attestations"
+    );
     f.write(
         "chapters/nested/contract.md",
         "{req}`test.rule` First.\n\n{req}`test.other` Second.",
@@ -269,4 +273,122 @@ fn cli_filter_does_not_hide_unknown_requirement() {
     ] {
         assert!(!f.cli(&args).status.success(), "{args:?}");
     }
+}
+
+#[test]
+fn default_source_external_links_and_nested_summary() {
+    let f = Fixture::new();
+    f.write("book.toml", "[book]\ntitle = 'Test'\n");
+    f.write("src/SUMMARY.md", "# Summary\n- [Root](root.md)\n  - [Nested](deep/leaf.md#anchor)\n- [Web](//example.com/book)\n- [Mail](mailto:a@example.com)\n- [URN](urn:example:test)\n- [Draft]()\n- [Anchor](#here)\n");
+    f.write("src/root.md", "{req}`test.root` Root.");
+    f.write("src/deep/leaf.md", "{req}`test.leaf` Leaf.");
+    let ids: Vec<_> = discover(&f.0).unwrap().into_iter().map(|r| r.id).collect();
+    assert_eq!(ids, ["test.leaf", "test.root"]);
+    f.write("book.toml", "book = 3");
+    assert!(discover(&f.0).unwrap_err().contains("table"));
+    f.write("book.toml", "[invalid");
+    assert!(discover(&f.0).is_err());
+}
+
+#[test]
+fn all_schema_fields_reject_wrong_types_and_missing_inputs() {
+    let f = Fixture::new();
+    for (key, value) in [
+        ("requirement", json!(null)),
+        ("inputs", json!({})),
+        ("justification", json!(4)),
+    ] {
+        let mut evidence = f.evidence();
+        evidence[key] = value;
+        f.save(&evidence);
+        assert!(!f.errors().is_empty(), "{key}");
+    }
+    for key in ["path", "line_start", "line_end", "contents"] {
+        let mut evidence = f.evidence();
+        evidence["inputs"][0].as_object_mut().unwrap().remove(key);
+        f.save(&evidence);
+        assert!(!f.errors().is_empty(), "missing {key}");
+        let mut evidence = f.evidence();
+        evidence["inputs"][0][key] = json!(null);
+        f.save(&evidence);
+        assert!(!f.errors().is_empty(), "null {key}");
+    }
+    let mut evidence = f.evidence();
+    evidence["inputs"][0]["extra"] = json!(false);
+    f.save(&evidence);
+    assert!(!f.errors().is_empty());
+    fs::write(f.0.join("evidence/test.rule.json"), [0xff]).unwrap();
+    assert!(!f.errors().is_empty());
+}
+
+#[test]
+fn exact_matching_detects_line_endings_and_ignores_uncited_changes() {
+    let f = Fixture::new();
+    f.write("src/code.rs", "uncited\nα\r\nβ\r\n");
+    let mut evidence = f.evidence();
+    evidence["inputs"][0]["contents"] = json!("α\r\nβ\r\n");
+    f.save(&evidence);
+    assert!(f.errors().is_empty());
+    for contents in ["α\nβ\n", "α\r\nβ", "a\r\nβ\r\n"] {
+        evidence["inputs"][0]["contents"] = json!(contents);
+        f.save(&evidence);
+        assert!(!f.errors().is_empty());
+    }
+    evidence["inputs"][0]["contents"] = json!("α\r\nβ\r\n");
+    f.save(&evidence);
+    f.write("src/code.rs", "changed uncited\nα\r\nβ\r\n");
+    assert!(f.errors().is_empty());
+    fs::remove_file(f.0.join("src/code.rs")).unwrap();
+    assert!(f.errors()[0].contains("src/code.rs"));
+}
+
+#[test]
+fn targeted_check_ignores_other_missing_evidence() {
+    let f = Fixture::new();
+    f.save(&f.evidence());
+    f.write(
+        "chapters/nested/contract.md",
+        "{req}`test.rule` Preserve **all** data.\n\n{req}`other.rule` Unattested.",
+    );
+    assert!(
+        f.cli(&["check", "--requirement", "test.rule"])
+            .status
+            .success()
+    );
+    assert!(!f.cli(&["check"]).status.success());
+}
+
+#[test]
+fn requirement_trims_only_outer_whitespace() {
+    let req = extract(
+        "chapter.md",
+        "{req}`test.rule`  First **word**.  \r\nSecond line.  \r\n\r\nSeparate rationale.",
+    )
+    .unwrap();
+    assert_eq!(req[0].requirement, "First **word**.  \r\nSecond line.");
+}
+
+#[cfg(unix)]
+#[test]
+fn repository_contained_symlink_is_allowed() {
+    let f = Fixture::new();
+    std::os::unix::fs::symlink("src/code.rs", f.0.join("inside")).unwrap();
+    assert_eq!(snapshot(&f.0, "inside", 1, 1).unwrap().contents, "first\n");
+}
+
+#[test]
+fn parent_relative_chapters_are_allowed_only_inside_repository() {
+    let f = Fixture::new();
+    f.write("chapters/SUMMARY.md", "- [Shared](../shared/chapter.md)");
+    f.write("shared/chapter.md", "{req}`test.shared` Shared contract.");
+    assert_eq!(discover(&f.0).unwrap()[0].id, "test.shared");
+    f.write("book.toml", "[book]\nsrc = './src/../chapters'");
+    assert_eq!(discover(&f.0).unwrap()[0].id, "test.shared");
+    let other = Fixture::new();
+    let sibling = other.0.file_name().unwrap().to_str().unwrap();
+    f.write(
+        "chapters/SUMMARY.md",
+        &format!("- [Escape](../../{sibling}/chapters/nested/contract.md)"),
+    );
+    assert!(discover(&f.0).unwrap_err().contains("escapes repository"));
 }

@@ -1,0 +1,24 @@
+{
+  "requirement": "The version expected by the skill must match the embedded Cargo package version.",
+  "inputs": [
+    {
+      "path": "skills/language-lab/SKILL.md",
+      "line_start": 12,
+      "line_end": 20,
+      "contents": "The expected CLI version is **0.1.0**. Before using the CLI for data operations, run `language-lab --version` and compare the reported version with this exact version. Reuse this check within the conversation unless the installation or skill changes. A newer version is still a mismatch.\n\nIf the executable is missing or differs, run:\n\n```sh\ncargo install --locked --path \"<absolute path to this skill>/cli\"\n```\n\nResolve the embedded `cli` directory relative to this SKILL.md, not the current working directory. After installation, run `language-lab --version` again and require exactly `language-lab 0.1.0`. If Cargo is unavailable, installation fails, or the expected binary cannot be found on PATH, stop data operations and explain the concrete failure. Do not silently use a different version, repeatedly reinstall, or claim memory was saved. Resolve a PATH issue and verify again before proceeding.\n"
+    },
+    {
+      "path": "skills/language-lab/cli/Cargo.toml",
+      "line_start": 1,
+      "line_end": 4,
+      "contents": "[package]\nname = \"language-lab\"\nversion = \"0.1.0\"\nedition = \"2021\"\n"
+    },
+    {
+      "path": "skills/language-lab/tests/test_package.py",
+      "line_start": 13,
+      "line_end": 42,
+      "contents": "SKILL = Path(__file__).resolve().parents[1]\n\n\nclass PackageTests(unittest.TestCase):\n    def test_locked_embedded_package_and_expected_version(self):\n        # Cargo validates the manifest and lockfile and discovers build targets.\n        result = subprocess.run(\n            [\"cargo\", \"metadata\", \"--locked\", \"--offline\", \"--no-deps\",\n             \"--format-version\", \"1\", \"--manifest-path\", str(SKILL / \"cli/Cargo.toml\")],\n            check=True, capture_output=True, text=True,\n        )\n        subprocess.run(\n            [\"cargo\", \"build\", \"--locked\", \"--offline\", \"--manifest-path\",\n             str(SKILL / \"cli/Cargo.toml\")],\n            check=True, capture_output=True, text=True,\n        )\n        packages = json.loads(result.stdout)[\"packages\"]\n        package = next(p for p in packages if p[\"name\"] == \"language-lab\")\n        expected = re.search(r\"The expected CLI version is \\*\\*([^*]+)\\*\\*\",\n                             (SKILL / \"SKILL.md\").read_text())\n        self.assertIsNotNone(expected, \"Skill must declare the expected version\")\n        self.assertEqual(expected.group(1), package[\"version\"])\n        self.assertTrue((SKILL / \"cli/Cargo.lock\").is_file())\n        binaries = [t for t in package[\"targets\"] if \"bin\" in t[\"kind\"]]\n        self.assertTrue(binaries, \"Embedded package needs an executable target\")\n        for target in package[\"targets\"]:\n            source = Path(target[\"src_path\"])\n            self.assertTrue(source.is_file())\n            self.assertTrue(source.is_relative_to(SKILL / \"cli\"),\n                            \"Skill must ship its own build targets\")\n"
+    }
+  ],
+  "justification": "Checklist: declared expected version exists and exactly equals embedded package version, not just a compatible version. test_package.py extracts the skill declaration and compares it with Cargo metadata version using assertEqual. Ran python3 skills/language-lab/tests/test_package.py: one test passed. Both versions equal 0.1.0."
+}

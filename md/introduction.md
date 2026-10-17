@@ -21,10 +21,10 @@ Review intervals and teaching choices belong to the tutor. The CLI handles calen
 
 ## A local tool first
 
-The intended package is a Rust CLI with bundled SQLite and a companion skill. One database serves one learner and can contain multiple languages. The skill asks which database to use. No account service, dedicated app UI, MCP server, or lifecycle hook is required for this design.
+The package is a Rust CLI with bundled SQLite and a companion skill. One database serves one learner and can contain multiple languages. The skill asks which database to use. No account service, dedicated app UI, MCP server, or lifecycle hook is required for this design.
 
 A future open-plugin or Symposium package can distribute the same components. Host-specific hooks may eventually make context refresh more reliable, but they are not a dependency of the initial experience.
 
 ## Status of this book
 
-This book specifies the proposed Language Lab CLI and skill; those components are not yet implemented here. The `mdbook-language-lab` crate implements this book’s requirement renderer. The [user’s guide](guide.md) describes the intended workflow, and [Design](design/README.md) defines the testable contract.
+The tutor skill lives in `skills/language-lab/`, with its Rust CLI embedded in `cli/`. The `mdbook-language-lab` crate renders this book’s requirements; `language-lab-ci` checks their evidence. The [user’s guide](guide.md) describes installation and use, and [Design](design/README.md) defines the testable contract.

@@ -1,0 +1,30 @@
+{
+  "requirement": "Requirement identifiers must contain a dot and consist only of lowercase ASCII letters, digits, dots, hyphens, and underscores.",
+  "inputs": [
+    {
+      "path": "mdbook-language-lab/tests/rendering.rs",
+      "line_start": 1,
+      "line_end": 14,
+      "contents": "use mdbook_language_lab::process;\nuse serde_json::{Value, json};\n\nfn chapter(path: &str, content: &str) -> Value {\n    json!({\"Chapter\": {\"path\": path, \"content\": content, \"sub_items\": []}})\n}\nfn render(source: &str) -> String {\n    let mut book = json!({\"items\": [chapter(\"test.md\", source)]});\n    process(&mut book).unwrap();\n    book[\"items\"][0][\"Chapter\"][\"content\"]\n        .as_str()\n        .unwrap()\n        .into()\n}\n"
+    },
+    {
+      "path": "mdbook-language-lab/src/lib.rs",
+      "line_start": 14,
+      "line_end": 18,
+      "contents": "pub fn valid_id(s: &str) -> bool {\n    !s.is_empty()\n        && s.bytes()\n            .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b\".-_\".contains(&b))\n}\n"
+    },
+    {
+      "path": "mdbook-language-lab/src/lib.rs",
+      "line_start": 123,
+      "line_end": 143,
+      "contents": "    chapters(items, &mut |ch| {\n        let source = ch[\"content\"].as_str().ok_or(\"missing chapter content\")?;\n        for role in roles(source).into_iter().filter(|r| r.name == \"req\") {\n            let path = ch[\"path\"]\n                .as_str()\n                .ok_or(\"requirement in chapter without output path\")?;\n            if !valid_id(&role.label) || !role.label.contains('.') {\n                return Err(format!(\n                    \"{path}: invalid requirement identifier {:?}\",\n                    role.label\n                ));\n            }\n            if let Some(previous) = definitions.insert(role.label.clone(), path.to_owned()) {\n                return Err(format!(\n                    \"{path}: duplicate requirement {} (first defined in {previous})\",\n                    role.label\n                ));\n            }\n        }\n        Ok(())\n    })?;\n"
+    },
+    {
+      "path": "mdbook-language-lab/tests/rendering.rs",
+      "line_start": 16,
+      "line_end": 31,
+      "contents": "#[test]\nfn identifier_alphabet_and_required_dot() {\n    for id in [\"a.b\", \"0.9\", \"a-b.c_d\", \".\", \"a..b\"] {\n        let output = render(&format!(\"{{req}}`{id}` Text.\"));\n        assert!(output.contains(&format!(\"id=\\\"req-{id}\\\"\")));\n    }\n    for id in [\"nodot\", \"A.b\", \"é.b\", \"a b\", \"a/b\", \"a:b\", \"a<b\", \"a\\\\b\"] {\n        let mut book = json!({\"items\": [chapter(\"invalid.md\", &format!(\"{{req}}`{id}` Text.\"))]});\n        let error = process(&mut book).unwrap_err();\n        assert!(\n            error.contains(\"invalid requirement identifier\"),\n            \"{id}: {error}\"\n        );\n        assert!(error.contains(\"invalid.md\"));\n    }\n}\n"
+    }
+  ],
+  "justification": "Checklist: dot required; lowercase/digits/dot/hyphen/underscore allowed; uppercase, whitespace, Unicode and other punctuation rejected. Validation and table-driven rendering tests exercise each alphabet class, single/multiple dots, and missing dot. Evidence ranges: mdbook-language-lab/tests/rendering.rs:1-14; mdbook-language-lab/src/lib.rs:14-18; mdbook-language-lab/src/lib.rs:123-143; mdbook-language-lab/tests/rendering.rs:16-31. Ran cargo test --locked --manifest-path mdbook-language-lab/Cargo.toml: all 15 tests passed. Clippy --all-targets with -D warnings passed."
+}

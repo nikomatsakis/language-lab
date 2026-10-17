@@ -1,0 +1,30 @@
+{
+  "requirement": "A definition role must produce a visible badge containing `REQ` and its identifier, with an anchor named `req-IDENTIFIER`.",
+  "inputs": [
+    {
+      "path": "mdbook-language-lab/tests/rendering.rs",
+      "line_start": 1,
+      "line_end": 14,
+      "contents": "use mdbook_language_lab::process;\nuse serde_json::{Value, json};\n\nfn chapter(path: &str, content: &str) -> Value {\n    json!({\"Chapter\": {\"path\": path, \"content\": content, \"sub_items\": []}})\n}\nfn render(source: &str) -> String {\n    let mut book = json!({\"items\": [chapter(\"test.md\", source)]});\n    process(&mut book).unwrap();\n    book[\"items\"][0][\"Chapter\"][\"content\"]\n        .as_str()\n        .unwrap()\n        .into()\n}\n"
+    },
+    {
+      "path": "mdbook-language-lab/src/lib.rs",
+      "line_start": 144,
+      "line_end": 170,
+      "contents": "    chapters(items, &mut |ch| {\n        let source = ch[\"content\"].as_str().ok_or(\"missing chapter content\")?;\n        let mut output = source.to_owned();\n        for role in roles(source).into_iter().rev() {\n            let path = ch[\"path\"]\n                .as_str()\n                .ok_or(\"role in chapter without output path\")?;\n            let definition = role.name == \"req\";\n            let id = if definition { &role.label } else { &role.name };\n            let target = definitions\n                .get(id)\n                .ok_or_else(|| format!(\"{path}: unknown requirement {id}\"))?;\n            let html = if definition {\n                format!(\n                    \"<a class=\\\"requirement-badge\\\" id=\\\"req-{id}\\\" href=\\\"#req-{id}\\\" aria-label=\\\"Requirement {id}\\\"><span class=\\\"requirement-kind\\\">REQ</span><span class=\\\"requirement-name\\\">{id}</span></a>\"\n                )\n            } else {\n                format!(\n                    \"<a class=\\\"requirement-reference\\\" href=\\\"{}\\\" title=\\\"Requirement {id}\\\">{}</a>\",\n                    escape(&href(path, target, id)),\n                    escape(&role.label)\n                )\n            };\n            output.replace_range(role.range, &html);\n        }\n        ch[\"content\"] = output.into();\n        Ok(())\n"
+    },
+    {
+      "path": "mdbook-language-lab/tests/rendering.rs",
+      "line_start": 121,
+      "line_end": 138,
+      "contents": "#[test]\nfn badges_are_visible_accessible_and_offline_with_focus_styles() {\n    let output = render(\"{req}`record.identity` Text.\\n\\n{record.identity}`identity`\");\n    assert!(output.contains(\"id=\\\"req-record.identity\\\" href=\\\"#req-record.identity\\\" aria-label=\\\"Requirement record.identity\\\"\"));\n    assert!(output.contains(\"<span class=\\\"requirement-kind\\\">REQ</span>\"));\n    assert!(output.contains(\"<span class=\\\"requirement-name\\\">record.identity</span>\"));\n    for forbidden in [\"<script\", \"<img\", \"src=\", \"http:\", \"https:\", \"onclick=\"] {\n        assert!(!output.contains(forbidden));\n    }\n    let css = include_str!(\"../../theme/requirements.css\");\n    assert!(!css.contains(\"url(\"));\n    assert!(!css.contains(\"@import\"));\n    assert!(css.contains(\".requirement-badge:focus-visible, .requirement-reference:focus-visible { outline: 3px solid #d97706; outline-offset: 3px; }\"));\n    assert!(!css.contains(\"display: none\"));\n    assert!(!css.contains(\"visibility: hidden\"));\n    let config = include_str!(\"../../book.toml\");\n    assert!(config.contains(\"additional-css = [\\\"theme/requirements.css\\\"]\"));\n}\n"
+    },
+    {
+      "path": "theme/requirements.css",
+      "line_start": 1,
+      "line_end": 19,
+      "contents": ".requirement-badge {\n    display: inline-flex;\n    align-items: stretch;\n    border-radius: 5px;\n    overflow: hidden;\n    vertical-align: middle;\n    font: 600 0.76em/1.7 ui-monospace, SFMono-Regular, Consolas, monospace;\n    box-shadow: 0 1px 3px #0003;\n    text-decoration: none !important;\n    margin: 0 .35em .15em 0;\n    scroll-margin-top: 5rem;\n}\n.requirement-kind { background: #334155; color: #fff; padding: .08em .6em; letter-spacing: .05em; }\n.requirement-name { background: #087e8b; color: #fff; padding: .08em .65em; }\n.requirement-badge:hover .requirement-name { background: #09616b; }\n.requirement-badge:target { outline: 3px solid #d97706; outline-offset: 3px; }\n.requirement-badge:focus-visible, .requirement-reference:focus-visible { outline: 3px solid #d97706; outline-offset: 3px; }\n.requirement-reference { text-decoration: underline; text-underline-offset: .18em; }\n@media print { .requirement-badge { box-shadow: none; border: 1px solid #64748b; } }\n"
+    }
+  ],
+  "justification": "Checklist: visible REQ/name text, exact anchor and link, nonhidden styling. HTML construction and structural badge test verify both text spans, exact anchor and accessible link; local CSS displays the inline-flex badge. Evidence ranges: mdbook-language-lab/tests/rendering.rs:1-14; mdbook-language-lab/src/lib.rs:144-170; mdbook-language-lab/tests/rendering.rs:121-138; theme/requirements.css:1-19. Ran cargo test --locked --manifest-path mdbook-language-lab/Cargo.toml: all 15 tests passed. Clippy --all-targets with -D warnings passed."
+}

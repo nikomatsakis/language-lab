@@ -1,0 +1,24 @@
+{
+  "requirement": "The executable must read mdBook’s `[context, book]` JSON from stdin and emit only the transformed book JSON on stdout.",
+  "inputs": [
+    {
+      "path": "mdbook-language-lab/src/main.rs",
+      "line_start": 1,
+      "line_end": 32,
+      "contents": "use mdbook_language_lab::process;\nuse serde_json::Value;\nuse std::io;\ntype Result<T> = std::result::Result<T, String>;\n\nfn run() -> Result<()> {\n    let args: Vec<_> = std::env::args().skip(1).collect();\n    if !args.is_empty() {\n        if args == [\"supports\", \"html\"] {\n            return Ok(());\n        }\n        return Err(\"usage: mdbook-language-lab [supports html]\".into());\n    }\n    let input: Value = serde_json::from_reader(io::stdin()).map_err(|e| e.to_string())?;\n    let pair = input\n        .as_array()\n        .filter(|p| p.len() == 2)\n        .ok_or(\"expected [context, book]\")?;\n    if pair[0][\"renderer\"] != \"html\" {\n        return Err(\"only the html renderer is supported\".into());\n    }\n    let mut book = pair[1].clone();\n    process(&mut book)?;\n    serde_json::to_writer(io::stdout(), &book).map_err(|e| e.to_string())\n}\n\nfn main() {\n    if let Err(error) = run() {\n        eprintln!(\"mdbook-language-lab: {error}\");\n        std::process::exit(1);\n    }\n}\n"
+    },
+    {
+      "path": "mdbook-language-lab/src/lib.rs",
+      "line_start": 114,
+      "line_end": 121,
+      "contents": "pub fn process(book: &mut Value) -> Result<()> {\n    // mdBook 0.4 used sections; 0.5 uses items. Preserve the input envelope.\n    let key = if book.get(\"items\").is_some() {\n        \"items\"\n    } else {\n        \"sections\"\n    };\n    let items = book.get_mut(key).ok_or(\"missing book items\")?;\n"
+    },
+    {
+      "path": "mdbook-language-lab/tests/protocol.rs",
+      "line_start": 1,
+      "line_end": 37,
+      "contents": "use serde_json::{Value, json};\nuse std::io::Write;\nuse std::process::{Command, Stdio};\n\nfn execute(input: &Value) -> std::process::Output {\n    let mut child = Command::new(env!(\"CARGO_BIN_EXE_mdbook-language-lab\"))\n        .stdin(Stdio::piped())\n        .stdout(Stdio::piped())\n        .stderr(Stdio::piped())\n        .spawn()\n        .unwrap();\n    child\n        .stdin\n        .take()\n        .unwrap()\n        .write_all(input.to_string().as_bytes())\n        .unwrap();\n    child.wait_with_output().unwrap()\n}\n\n#[test]\nfn protocol_is_json_only_and_preserves_metadata() {\n    let input = json!([{ \"renderer\": \"html\" }, {\"items\":[{\"Chapter\":{\n        \"path\":\"test.md\", \"content\":\"{req}`test.identity` Unique.\", \"sub_items\":[]\n    }}], \"metadata\": {\"preserve\":true}}]);\n    let output = execute(&input);\n    assert!(output.status.success());\n    assert!(output.stderr.is_empty());\n    let book: Value = serde_json::from_slice(&output.stdout).unwrap();\n    assert_eq!(book[\"metadata\"], input[1][\"metadata\"]);\n    assert!(\n        book[\"items\"][0][\"Chapter\"][\"content\"]\n            .as_str()\n            .unwrap()\n            .contains(\"requirement-badge\")\n    );\n}\n"
+    }
+  ],
+  "justification": "Checklist: [context, book] input, transformed book only, unrelated metadata preserved, no stderr on success. Executable subprocess test parses entire stdout as one JSON value, checks transformed badge and preserved metadata; main emits only book after successful processing. Evidence ranges: mdbook-language-lab/src/main.rs:1-32; mdbook-language-lab/src/lib.rs:114-121; mdbook-language-lab/tests/protocol.rs:1-37. Ran cargo test --locked --manifest-path mdbook-language-lab/Cargo.toml: all 15 tests passed. Clippy --all-targets with -D warnings passed."
+}

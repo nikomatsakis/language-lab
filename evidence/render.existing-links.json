@@ -1,0 +1,24 @@
+{
+  "requirement": "Roles within Markdown link or image labels must remain unchanged to avoid nested links.",
+  "inputs": [
+    {
+      "path": "mdbook-language-lab/tests/rendering.rs",
+      "line_start": 1,
+      "line_end": 14,
+      "contents": "use mdbook_language_lab::process;\nuse serde_json::{Value, json};\n\nfn chapter(path: &str, content: &str) -> Value {\n    json!({\"Chapter\": {\"path\": path, \"content\": content, \"sub_items\": []}})\n}\nfn render(source: &str) -> String {\n    let mut book = json!({\"items\": [chapter(\"test.md\", source)]});\n    process(&mut book).unwrap();\n    book[\"items\"][0][\"Chapter\"][\"content\"]\n        .as_str()\n        .unwrap()\n        .into()\n}\n"
+    },
+    {
+      "path": "mdbook-language-lab/src/lib.rs",
+      "line_start": 20,
+      "line_end": 58,
+      "contents": "// Let the Markdown parser identify inline code, so fenced/indented examples and\n// literal code spans are never mistaken for roles. Preserve all other source bytes.\npub fn roles(source: &str) -> Vec<Role> {\n    let mut result = Vec::new();\n    let mut nested_link = 0;\n    for (event, range) in Parser::new(source).into_offset_iter() {\n        match event {\n            Event::Start(Tag::Link { .. } | Tag::Image { .. }) => nested_link += 1,\n            Event::End(TagEnd::Link | TagEnd::Image) => nested_link -= 1,\n            Event::Code(label) if nested_link == 0 => {\n                let prefix = &source[..range.start];\n                if !prefix.ends_with('}') {\n                    continue;\n                }\n                let Some(start) = prefix.rfind('{') else {\n                    continue;\n                };\n                let escapes = prefix[..start]\n                    .bytes()\n                    .rev()\n                    .take_while(|b| *b == b'\\\\')\n                    .count();\n                if escapes % 2 != 0 {\n                    continue;\n                }\n                let name = &prefix[start + 1..prefix.len() - 1];\n                if name == \"req\" || (valid_id(name) && name.contains('.')) {\n                    result.push(Role {\n                        range: start..range.end,\n                        name: name.into(),\n                        label: label.into_string(),\n                    });\n                }\n            }\n            _ => {}\n        }\n    }\n    result\n}\n"
+    },
+    {
+      "path": "mdbook-language-lab/tests/rendering.rs",
+      "line_start": 77,
+      "line_end": 95,
+      "contents": "#[test]\nfn literal_markdown_contexts_remain_byte_identical() {\n    let cases = [\n        \"```markdown\\n{req}`fake.id`\\n{missing.id}`reference`\\n```\\n\",\n        \"~~~\\n{req}`fake.id`\\n~~~\\n\",\n        \"    {req}`fake.id`\\n\\n    {missing.id}`reference`\\n\",\n        \"``{req}`fake.id` `` and ``{missing.id}`reference` ``\\n\",\n        \"\\\\{req}`fake.id` and \\\\{missing.id}`reference`\\n\",\n        \"[{req}`fake.id`](https://example.com)\\n\",\n        \"![{req}`fake.id`](image.png)\\n\",\n        \"[{missing.id}`reference`][target]\\n\\n[target]: page.md\\n\",\n        \"![{missing.id}`reference`][image]\\n\\n[image]: image.png\\n\",\n    ];\n    for source in cases {\n        assert_eq!(render(source), source);\n    }\n    // An even number of backslashes escapes the slash, not the role brace.\n    assert!(render(\"\\\\\\\\{req}`real.id`\").starts_with(\"\\\\\\\\<a \"));\n}\n"
+    }
+  ],
+  "justification": "Checklist: link/image labels, inline/reference-style destinations, definitions/references. Parser tracks Link/Image nesting; whole-source tests cover all four contexts, including unresolved role names that would otherwise fail. Evidence ranges: mdbook-language-lab/tests/rendering.rs:1-14; mdbook-language-lab/src/lib.rs:20-58; mdbook-language-lab/tests/rendering.rs:77-95. Ran cargo test --locked --manifest-path mdbook-language-lab/Cargo.toml: all 15 tests passed. Clippy --all-targets with -D warnings passed."
+}

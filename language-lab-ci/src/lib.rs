@@ -62,6 +62,28 @@ fn read(root: &Path, relative: &Path) -> Result<String> {
         .map_err(|e| format!("{}: {e}", relative.display()))
 }
 
+// Chapter links may go up from book.src while remaining within the repository.
+// Evidence input paths intentionally use the stricter contained() policy above.
+fn read_book(root: &Path, relative: &Path) -> Result<String> {
+    if relative.is_absolute() {
+        return Err(format!(
+            "book paths must be relative: {}",
+            relative.display()
+        ));
+    }
+    let path = root
+        .join(relative)
+        .canonicalize()
+        .map_err(|e| format!("{}: {e}", relative.display()))?;
+    if !path.starts_with(root) {
+        return Err(format!(
+            "book path escapes repository: {}",
+            relative.display()
+        ));
+    }
+    fs::read_to_string(path).map_err(|e| format!("{}: {e}", relative.display()))
+}
+
 /// Extract definitions from their enclosing paragraphs, preserving source Markdown.
 pub fn extract(path: &str, source: &str) -> Result<Vec<Requirement>> {
     let paragraphs: Vec<_> = Parser::new(source)
@@ -107,22 +129,30 @@ pub fn extract(path: &str, source: &str) -> Result<Vec<Requirement>> {
 /// Read authored chapters listed in the configured book's SUMMARY.md.
 pub fn discover(root: &Path) -> Result<Vec<Requirement>> {
     let root = root.canonicalize().map_err(|e| e.to_string())?;
-    let config: toml::Value = read(&root, Path::new("book.toml"))?
+    let config: toml::Value = read_book(&root, Path::new("book.toml"))?
         .parse()
         .map_err(|e| format!("book.toml: {e}"))?;
+    if config.get("book").is_some_and(|book| !book.is_table()) {
+        return Err("book must be a TOML table".into());
+    }
     let src = match config.get("book").and_then(|b| b.get("src")) {
         Some(value) => value.as_str().ok_or("book.src must be a string")?,
         None => "src",
     };
-    let summary = read(&root, &Path::new(src).join("SUMMARY.md"))?;
+    let summary = read_book(&root, &Path::new(src).join("SUMMARY.md"))?;
     let mut chapters = BTreeSet::new();
     for event in Parser::new(&summary) {
         if let Event::Start(Tag::Link { dest_url, .. }) = event {
             let dest = dest_url.as_ref();
             if dest.is_empty()
                 || dest.starts_with('#')
-                || dest.contains("://")
-                || dest.starts_with("mailto:")
+                || dest.starts_with("//")
+                || dest.split_once(':').is_some_and(|(scheme, _)| {
+                    scheme.starts_with(|c: char| c.is_ascii_alphabetic())
+                        && scheme
+                            .chars()
+                            .all(|c| c.is_ascii_alphanumeric() || "+-.".contains(c))
+                })
             {
                 continue;
             }
@@ -132,7 +162,7 @@ pub fn discover(root: &Path) -> Result<Vec<Requirement>> {
     }
     let mut found: BTreeMap<String, Requirement> = BTreeMap::new();
     for chapter in chapters {
-        let source = read(&root, &chapter)?;
+        let source = read_book(&root, &chapter)?;
         let path = chapter.to_string_lossy().replace('\\', "/");
         for requirement in extract(&path, &source)? {
             if let Some(previous) = found.get(&requirement.id) {

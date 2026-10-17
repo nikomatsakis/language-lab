@@ -1,0 +1,30 @@
+{
+  "requirement": "A reference role must render its body as a link to the matching definition’s HTML page and anchor.",
+  "inputs": [
+    {
+      "path": "mdbook-language-lab/tests/rendering.rs",
+      "line_start": 1,
+      "line_end": 14,
+      "contents": "use mdbook_language_lab::process;\nuse serde_json::{Value, json};\n\nfn chapter(path: &str, content: &str) -> Value {\n    json!({\"Chapter\": {\"path\": path, \"content\": content, \"sub_items\": []}})\n}\nfn render(source: &str) -> String {\n    let mut book = json!({\"items\": [chapter(\"test.md\", source)]});\n    process(&mut book).unwrap();\n    book[\"items\"][0][\"Chapter\"][\"content\"]\n        .as_str()\n        .unwrap()\n        .into()\n}\n"
+    },
+    {
+      "path": "mdbook-language-lab/src/lib.rs",
+      "line_start": 68,
+      "line_end": 99,
+      "contents": "fn href(from: &str, to: &str, id: &str) -> String {\n    if from == to {\n        return format!(\"#req-{id}\");\n    }\n    let from: Vec<_> = from.split('/').collect();\n    let target = Path::new(to)\n        .with_extension(\"html\")\n        .to_string_lossy()\n        .replace('\\\\', \"/\");\n    let to: Vec<_> = target.split('/').collect();\n    let common = from[..from.len() - 1]\n        .iter()\n        .zip(&to)\n        .take_while(|(a, b)| a == b)\n        .count();\n    let path = format!(\n        \"{}{}\",\n        \"../\".repeat(from.len() - 1 - common),\n        to[common..].join(\"/\")\n    );\n    let encoded: String = path\n        .bytes()\n        .map(|b| {\n            if b.is_ascii_alphanumeric() || b\"/-._~\".contains(&b) {\n                (b as char).to_string()\n            } else {\n                format!(\"%{b:02X}\")\n            }\n        })\n        .collect();\n    format!(\"{encoded}#req-{id}\")\n}\n"
+    },
+    {
+      "path": "mdbook-language-lab/src/lib.rs",
+      "line_start": 144,
+      "line_end": 170,
+      "contents": "    chapters(items, &mut |ch| {\n        let source = ch[\"content\"].as_str().ok_or(\"missing chapter content\")?;\n        let mut output = source.to_owned();\n        for role in roles(source).into_iter().rev() {\n            let path = ch[\"path\"]\n                .as_str()\n                .ok_or(\"role in chapter without output path\")?;\n            let definition = role.name == \"req\";\n            let id = if definition { &role.label } else { &role.name };\n            let target = definitions\n                .get(id)\n                .ok_or_else(|| format!(\"{path}: unknown requirement {id}\"))?;\n            let html = if definition {\n                format!(\n                    \"<a class=\\\"requirement-badge\\\" id=\\\"req-{id}\\\" href=\\\"#req-{id}\\\" aria-label=\\\"Requirement {id}\\\"><span class=\\\"requirement-kind\\\">REQ</span><span class=\\\"requirement-name\\\">{id}</span></a>\"\n                )\n            } else {\n                format!(\n                    \"<a class=\\\"requirement-reference\\\" href=\\\"{}\\\" title=\\\"Requirement {id}\\\">{}</a>\",\n                    escape(&href(path, target, id)),\n                    escape(&role.label)\n                )\n            };\n            output.replace_range(role.range, &html);\n        }\n        ch[\"content\"] = output.into();\n        Ok(())\n"
+    },
+    {
+      "path": "mdbook-language-lab/tests/rendering.rs",
+      "line_start": 54,
+      "line_end": 75,
+      "contents": "#[test]\nfn references_resolve_before_and_after_nested_definitions() {\n    for reversed in [false, true] {\n        let source = chapter(\"guide/deep/start.md\", \"{a.b}`Go there`\");\n        let mut parent = chapter(\"design/root.md\", \"Parent\");\n        parent[\"Chapter\"][\"sub_items\"] = json!([chapter(\"design/Greek α.md\", \"{req}`a.b` Rule.\")]);\n        let items = if reversed {\n            vec![parent, source]\n        } else {\n            vec![source, parent]\n        };\n        let mut book = json!({\"items\":items});\n        process(&mut book).unwrap();\n        let index = usize::from(reversed);\n        assert_eq!(\n            book[\"items\"][index][\"Chapter\"][\"content\"],\n            \"<a class=\\\"requirement-reference\\\" href=\\\"../../design/Greek%20%CE%B1.html#req-a.b\\\" title=\\\"Requirement a.b\\\">Go there</a>\"\n        );\n    }\n    let local = render(\"{req}`a.b` Rule.\\n\\n{a.b}`local`\");\n    assert!(local.contains(\"href=\\\"#req-a.b\\\" title=\\\"Requirement a.b\\\">local</a>\"));\n}\n"
+    }
+  ],
+  "justification": "Checklist: exact label, same-page fragment, cross-page relative HTML path, spaces/Unicode encoding. Full output assertions cover nested relative path and local fragment; href conversion handles shared path prefixes. Evidence ranges: mdbook-language-lab/tests/rendering.rs:1-14; mdbook-language-lab/src/lib.rs:68-99; mdbook-language-lab/src/lib.rs:144-170; mdbook-language-lab/tests/rendering.rs:54-75. Ran cargo test --locked --manifest-path mdbook-language-lab/Cargo.toml: all 15 tests passed. Clippy --all-targets with -D warnings passed."
+}

@@ -1,0 +1,30 @@
+{
+  "requirement": "Before creating a database, the skill must instruct the tutor to establish the learner’s timezone from available context or by asking.",
+  "inputs": [
+    {
+      "path": "skills/language-lab/SKILL.md",
+      "line_start": 26,
+      "line_end": 26,
+      "contents": "Before creating a database, establish the learner's timezone from available context or ask them. Then use `language-lab init PATH --timezone ZONE`; never overwrite an existing database. Keep learning databases outside this installed skill directory so updating the skill preserves them.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/scenarios.md",
+      "line_start": 15,
+      "line_end": 17,
+      "contents": "3. **Initialization:** The learner chooses a new file. Run one case with known\n   Europe/Berlin timezone and one with no timezone context. A chosen file already\n   exists in a third case.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/review.md",
+      "line_start": 1,
+      "line_end": 7,
+      "contents": "# Independent tutor instruction review\n\nReviewed 2026-10-17 by the spec-review subagent. I read only SKILL.md and the\nscenario inputs before writing these decisions; no expected answers were read.\nThese are dry-run actions derived from the shipped instructions. No learner\ndatabase commands or writes were executed. This checks the instruction contract,\nnot universal compliance by an arbitrary model or host.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/review.md",
+      "line_start": 19,
+      "line_end": 23,
+      "contents": "3. **Initialization.** With a new path and known Europe/Berlin context, initialize\n   using that timezone. With no timezone context, ask before initialization.\n   If the chosen path exists, never overwrite it or delete it to make init work;\n   explain that it exists and establish whether to open that database or choose\n   another new path. Check successful initialization before claiming creation.\n"
+    }
+  ],
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Known timezone is reused; absent context triggers a question before initialization; existing paths are not overwritten. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+}

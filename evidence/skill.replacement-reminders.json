@@ -1,0 +1,30 @@
+{
+  "requirement": "The skill must instruct the tutor to consider replacement scheduling and pinning reminders before finishing the learning turn.",
+  "inputs": [
+    {
+      "path": "skills/language-lab/SKILL.md",
+      "line_start": 48,
+      "line_end": 48,
+      "contents": "Content changes always create fresh IDs. Use replacement to rewrite, split, merge, or retire records as your understanding evolves. Scheduling changes alone preserve identity. Successors do not inherit pinning or dates: set these intentionally when replacing. Read the response's retired records, previous review dates and pin state, `needs_review_schedule`, and `reminders`; consider both scheduling and pinning before finishing the learning turn. Leaving a successor unscheduled or unpinned is permitted when deliberate. To correct pinning after creation, replace that record with a successor having the desired pin state.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/scenarios.md",
+      "line_start": 32,
+      "line_end": 35,
+      "contents": "8. **Replacement response:** A previously pinned, scheduled record is replaced.\n   Response contains an unscheduled successor, previous pin/date metadata, and\n   both review and pin reminders. Decide what to do before ending the turn.\n   Repeat when intentional unscheduling and unpinning are appropriate.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/review.md",
+      "line_start": 1,
+      "line_end": 7,
+      "contents": "# Independent tutor instruction review\n\nReviewed 2026-10-17 by the spec-review subagent. I read only SKILL.md and the\nscenario inputs before writing these decisions; no expected answers were read.\nThese are dry-run actions derived from the shipped instructions. No learner\ndatabase commands or writes were executed. This checks the instruction contract,\nnot universal compliance by an arbitrary model or host.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/review.md",
+      "line_start": 48,
+      "line_end": 55,
+      "contents": "8. **Replacement response.** Read previous date/pin metadata and both reminders.\n   If the successor still carries durable context, replace it to set `pinned:\n   true` and intentionally supply a review interval or date. If only scheduling\n   needs adjustment, use `schedule` to preserve identity. Inspect each successful\n   result and its new IDs before claiming persistence. In the alternative where\n   no future review and no durable startup context are useful, deliberately leave\n   the successor unscheduled and unpinned, acknowledging both choices before\n   ending the turn. Reminders do not force a write.\n"
+    }
+  ],
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Both previous pin and scheduling metadata are considered; deliberate correction and deliberate unscheduling/unpinning are tested. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+}

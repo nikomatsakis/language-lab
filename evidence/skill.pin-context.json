@@ -1,0 +1,30 @@
+{
+  "requirement": "The skill must instruct the tutor to represent durable learner goals and teaching preferences needed across conversations in active pinned records.",
+  "inputs": [
+    {
+      "path": "skills/language-lab/SKILL.md",
+      "line_start": 42,
+      "line_end": 42,
+      "contents": "The CLI stores one kind of record with arbitrary JSON content. You may introduce and revise conventions without changing its schema. For example, `kind`, `text`, and `related_to` are optional conventions, not required or closed vocabularies. Durable learner goals and teaching preferences needed across conversations belong in active **pinned** records.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/scenarios.md",
+      "line_start": 36,
+      "line_end": 38,
+      "contents": "9. **Durable preferences and schema:** Learner says “I prefer short conversations;\n   I'm preparing for travel.” Tutor also wants a new JSON convention for recurring\n   tense confusions. Explain persistence and whether schema changes are needed.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/review.md",
+      "line_start": 1,
+      "line_end": 7,
+      "contents": "# Independent tutor instruction review\n\nReviewed 2026-10-17 by the spec-review subagent. I read only SKILL.md and the\nscenario inputs before writing these decisions; no expected answers were read.\nThese are dry-run actions derived from the shipped instructions. No learner\ndatabase commands or writes were executed. This checks the instruction contract,\nnot universal compliance by an arbitrary model or host.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/review.md",
+      "line_start": 56,
+      "line_end": 60,
+      "contents": "9. **Durable preferences and schema.** Save the short-conversation/travel goals in\n   an active pinned record, using arbitrary JSON such as learner-notes text.\n   Introduce a recurring-tense-confusion convention in ordinary content as useful;\n   no database migration or CLI schema change is needed. If revising earlier\n   conventions or notes, use replacement and choose successor pinning deliberately.\n"
+    }
+  ],
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Durable travel goals and conversational preferences become an active pinned record with deliberate successor pinning on edits. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+}

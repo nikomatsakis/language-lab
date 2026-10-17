@@ -1,0 +1,30 @@
+{
+  "requirement": "Once selected, the skill must instruct the tutor to reuse that database path until the learner changes it.",
+  "inputs": [
+    {
+      "path": "skills/language-lab/SKILL.md",
+      "line_start": 24,
+      "line_end": 24,
+      "contents": "If no database has been selected in this conversation or supplied by the host, ask the learner to select an existing database file or choose a path for a new one before issuing data commands. Reuse the selected path until the learner changes it. Do not infer a selection from a convenient file in the current directory. A fresh conversation needs a selection again unless the host supplies it.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/scenarios.md",
+      "line_start": 12,
+      "line_end": 14,
+      "contents": "2. **Continuity and switch:** The conversation selected `/tmp/greek.sqlite`.\n   The learner resumes tomorrow, then later explicitly selects\n   `/tmp/travel.sqlite`. A third fresh thread has no host selection.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/review.md",
+      "line_start": 1,
+      "line_end": 7,
+      "contents": "# Independent tutor instruction review\n\nReviewed 2026-10-17 by the spec-review subagent. I read only SKILL.md and the\nscenario inputs before writing these decisions; no expected answers were read.\nThese are dry-run actions derived from the shipped instructions. No learner\ndatabase commands or writes were executed. This checks the instruction contract,\nnot universal compliance by an arbitrary model or host.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/review.md",
+      "line_start": 14,
+      "line_end": 18,
+      "contents": "2. **Continuity and switch.** On resumption use `/tmp/greek.sqlite`, refresh its\n   selected-language context before teaching, and do not ask for the database\n   again. After the explicit switch use `/tmp/travel.sqlite` on all subsequent\n   commands; establish a language if it is unclear for that selection. In the\n   fresh thread without host selection, ask which database to use again.\n"
+    }
+  ],
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Continuing sessions reuse the selected path, explicit changes switch subsequent commands, and a fresh thread asks again. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+}

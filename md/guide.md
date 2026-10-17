@@ -1,12 +1,21 @@
 # User’s guide
 
-The commands below describe the intended interface. The Language Lab CLI and tutor skill are not yet implemented. The book’s renderer is implemented; instructions for building the book are at the end of this chapter.
+The tutor skill is in `skills/language-lab/SKILL.md`. Make that directory available to your agent’s skill loader. It includes the CLI source and instructions to check its exact version before use.
+
+With Rust/Cargo and a C compiler available, you can also install the CLI directly from the repository root:
+
+```sh
+cargo install --locked --path skills/language-lab/cli
+language-lab --version
+```
+
+The current skill expects `language-lab 0.1.0`. SQLite is compiled into the executable; no separate SQLite installation is needed. Keep your learning database outside the installed skill directory. The skill reinstalls when the version differs and verifies the result before data operations.
 
 ## Choose your learning database
 
 Invoke the Language Lab skill in your conversation interface. The tutor asks whether to open an existing database or create one, and which language you want to practice. It retains that selection in the conversation and passes the path explicitly on every command.
 
-For a new database, the intended command is:
+For a new database:
 
 ```sh
 language-lab init "$HOME/Languages.sqlite" --timezone Europe/Berlin
@@ -180,6 +189,4 @@ and reports the gaps. Do not regenerate snapshots merely to silence CI.
 The checker reads requirement paragraphs from chapters listed in `SUMMARY.md`.
 Its `requirements` command prints the extracted text, and its `input` command
 produces exact line-range snapshots. Run `--help` for their arguments. The
-**Requirement evidence** workflow is independent of Pages publication; it is
-expected to fail until the proposed requirements have been implemented, tested,
-and revalidated.
+**Requirement evidence** workflow is independent of Pages publication; missing or stale evidence must be revalidated before it passes.

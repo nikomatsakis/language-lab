@@ -1,0 +1,24 @@
+{
+  "requirement": "The extracted requirement must be the authored Markdown after its definition role through the end of its paragraph, trimming only outer whitespace.",
+  "inputs": [
+    {
+      "path": "language-lab-ci/src/lib.rs",
+      "line_start": 88,
+      "line_end": 127,
+      "contents": "pub fn extract(path: &str, source: &str) -> Result<Vec<Requirement>> {\n    let paragraphs: Vec<_> = Parser::new(source)\n        .into_offset_iter()\n        .filter_map(|(event, range)| matches!(event, Event::Start(Tag::Paragraph)).then_some(range))\n        .collect();\n    let mut requirements = Vec::new();\n    let mut used = BTreeSet::new();\n    for role in roles(source).into_iter().filter(|r| r.name == \"req\") {\n        if !valid_id(&role.label) || !role.label.contains('.') {\n            return Err(format!(\"{path}: invalid requirement ID {:?}\", role.label));\n        }\n        let paragraph = paragraphs\n            .iter()\n            .find(|r| r.start <= role.range.start && r.end >= role.range.end)\n            .ok_or_else(|| format!(\"{path}: {} must begin a paragraph\", role.label))?;\n        if !source[paragraph.start..role.range.start].trim().is_empty()\n            || !used.insert(paragraph.start)\n        {\n            return Err(format!(\n                \"{path}: {} must be the only definition at the start of its paragraph\",\n                role.label\n            ));\n        }\n        let text = source[role.range.end..paragraph.end].trim();\n        if text.is_empty() {\n            return Err(format!(\"{path}: {} has no requirement text\", role.label));\n        }\n        requirements.push(Requirement {\n            id: role.label,\n            path: path.into(),\n            line: source[..role.range.start]\n                .bytes()\n                .filter(|b| *b == b'\\n')\n                .count()\n                + 1,\n            requirement: text.into(),\n        });\n    }\n    Ok(requirements)\n}\n"
+    },
+    {
+      "path": "language-lab-ci/tests/evidence.rs",
+      "line_start": 61,
+      "line_end": 74,
+      "contents": "fn extracts_multiline_markdown_and_ignores_examples() {\n    let source = \"# Header\\n\\n```md\\n{req}`fake.fenced` Nope.\\n```\\n\\n    {req}`fake.indented` Nope.\\n\\n``{req}`fake.inline` ``\\n\\n\\\\{req}`fake.escaped` Nope.\\n\\n[{req}`fake.link`](url)\\n\\n![{req}`fake.image`](image.png)\\n\\n{req}`real.rule` Keep **all** data,\\nincluding {other.rule}`references`.\\n\\nRationale is separate.\\n\";\n    let requirements = extract(\"chapter.md\", source).unwrap();\n    assert_eq!(requirements.len(), 1);\n    assert_eq!(requirements[0].id, \"real.rule\");\n    assert_eq!(\n        requirements[0].requirement,\n        \"Keep **all** data,\\nincluding {other.rule}`references`.\"\n    );\n    assert_eq!(\n        source.lines().nth(requirements[0].line - 1).unwrap(),\n        \"{req}`real.rule` Keep **all** data,\"\n    );\n}\n"
+    },
+    {
+      "path": "language-lab-ci/tests/evidence.rs",
+      "line_start": 362,
+      "line_end": 369,
+      "contents": "fn requirement_trims_only_outer_whitespace() {\n    let req = extract(\n        \"chapter.md\",\n        \"{req}`test.rule`  First **word**.  \\r\\nSecond line.  \\r\\n\\r\\nSeparate rationale.\",\n    )\n    .unwrap();\n    assert_eq!(req[0].requirement, \"First **word**.  \\r\\nSecond line.\");\n}\n"
+    }
+  ],
+  "justification": "Scenarios: multi-line Markdown, formatting, reference roles, trailing whitespace, CRLF, and following rationale. The paragraph source range is sliced after the role and trim removes only outer whitespace. Exact string assertions preserve internal Markdown and line breaks while excluding the next paragraph. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions."
+}

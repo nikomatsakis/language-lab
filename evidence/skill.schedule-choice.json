@@ -1,0 +1,30 @@
+{
+  "requirement": "After practice on a scheduled record, the skill must instruct the tutor to explicitly choose to retain, change, clear, or replace its schedule.",
+  "inputs": [
+    {
+      "path": "skills/language-lab/SKILL.md",
+      "line_start": 46,
+      "line_end": 46,
+      "contents": "After practice on a scheduled record, explicitly choose whether to retain its date, change it, clear it, or replace the record with newly scheduled successors. Retaining means a deliberate choice, not overlooking the old schedule. A due record need not be practiced if the learner chooses another activity.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/scenarios.md",
+      "line_start": 29,
+      "line_end": 31,
+      "contents": "7. **Schedule choices:** Four scheduled practiced records need respectively an\n   unchanged date, a later date, no future review, and a split. Show the deliberate\n   decision for each. A fifth due item is unrelated to the learner's chosen topic.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/review.md",
+      "line_start": 1,
+      "line_end": 7,
+      "contents": "# Independent tutor instruction review\n\nReviewed 2026-10-17 by the spec-review subagent. I read only SKILL.md and the\nscenario inputs before writing these decisions; no expected answers were read.\nThese are dry-run actions derived from the shipped instructions. No learner\ndatabase commands or writes were executed. This checks the instruction contract,\nnot universal compliance by an arbitrary model or host.\n"
+    },
+    {
+      "path": "skills/language-lab/tests/review.md",
+      "line_start": 43,
+      "line_end": 47,
+      "contents": "7. **Schedule choices.** Explicitly retain the first record's current date (no\n   write needed). Reschedule the second to a deliberate later date. Clear the\n   third with `schedule ... --clear`. Replace the fourth with a split and choose\n   successor schedules intentionally. Leave the fifth due item untouched because\n   it is outside the chosen topic; being due does not force practice.\n"
+    }
+  ],
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Four cases deliberately retain, change, clear, and replace schedules; a due but unpracticed item remains untouched. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+}
