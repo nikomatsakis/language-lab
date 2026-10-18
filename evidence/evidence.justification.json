@@ -16,15 +16,15 @@
     {
       "path": "language-lab-ci/tests/evidence.rs",
       "line_start": 114,
-      "line_end": 123,
-      "contents": "fn exact_evidence_passes_and_justification_is_not_evaluated() {\n    let f = Fixture::new();\n    let mut evidence = f.evidence();\n    for justification in [\"\", \"This explanation is deliberately not a valid proof.\"] {\n        evidence[\"justification\"] = justification.into();\n        f.save(&evidence);\n        assert!(f.errors().is_empty());\n        assert!(f.cli(&[\"check\"]).status.success());\n    }\n}\n"
+      "line_end": 127,
+      "contents": "fn exact_evidence_passes_and_justification_is_not_evaluated() {\n    let f = Fixture::new();\n    let mut evidence = f.evidence();\n    for justification in [\"\", \"This explanation is deliberately not a valid proof.\"] {\n        evidence[\"justification\"] = justification.into();\n        f.save(&evidence);\n        assert!(f.errors().is_empty());\n        assert!(\n            f.cli(&[\"check\", \"--requirement\", \"test.rule\"])\n                .status\n                .success()\n        );\n    }\n}\n"
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 294,
-      "line_end": 322,
+      "line_start": 298,
+      "line_end": 326,
       "contents": "fn all_schema_fields_reject_wrong_types_and_missing_inputs() {\n    let f = Fixture::new();\n    for (key, value) in [\n        (\"requirement\", json!(null)),\n        (\"inputs\", json!({})),\n        (\"justification\", json!(4)),\n    ] {\n        let mut evidence = f.evidence();\n        evidence[key] = value;\n        f.save(&evidence);\n        assert!(!f.errors().is_empty(), \"{key}\");\n    }\n    for key in [\"path\", \"line_start\", \"line_end\", \"contents\"] {\n        let mut evidence = f.evidence();\n        evidence[\"inputs\"][0].as_object_mut().unwrap().remove(key);\n        f.save(&evidence);\n        assert!(!f.errors().is_empty(), \"missing {key}\");\n        let mut evidence = f.evidence();\n        evidence[\"inputs\"][0][key] = json!(null);\n        f.save(&evidence);\n        assert!(!f.errors().is_empty(), \"null {key}\");\n    }\n    let mut evidence = f.evidence();\n    evidence[\"inputs\"][0][\"extra\"] = json!(false);\n    f.save(&evidence);\n    assert!(!f.errors().is_empty());\n    fs::write(f.0.join(\"evidence/test.rule.json\"), [0xff]).unwrap();\n    assert!(!f.errors().is_empty());\n}\n"
     }
   ],
-  "justification": "Scenarios: empty string and explicitly non-probative explanation still pass when snapshots match; non-string justification fails schema validation. The field is deserialized as a string but never read during validation. The subprocess tests demonstrate ignored contents independently from format enforcement. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions."
+  "justification": "Scenarios: empty string and explicitly non-probative explanation still pass when snapshots match; non-string justification fails schema validation. The field is deserialized as a string but never read during validation. The subprocess tests demonstrate ignored contents independently from format enforcement. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions. Revalidated empty and arbitrary justification strings: both still succeed through library validation and a targeted CLI check; only test selection changed so the fixture does not need an unrelated Cargo project. All 21 checker tests passed with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml."
 }

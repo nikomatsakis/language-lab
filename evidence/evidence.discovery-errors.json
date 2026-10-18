@@ -33,8 +33,8 @@
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 279,
-      "line_end": 291,
+      "line_start": 283,
+      "line_end": 295,
       "contents": "fn default_source_external_links_and_nested_summary() {\n    let f = Fixture::new();\n    f.write(\"book.toml\", \"[book]\\ntitle = 'Test'\\n\");\n    f.write(\"src/SUMMARY.md\", \"# Summary\\n- [Root](root.md)\\n  - [Nested](deep/leaf.md#anchor)\\n- [Web](//example.com/book)\\n- [Mail](mailto:a@example.com)\\n- [URN](urn:example:test)\\n- [Draft]()\\n- [Anchor](#here)\\n\");\n    f.write(\"src/root.md\", \"{req}`test.root` Root.\");\n    f.write(\"src/deep/leaf.md\", \"{req}`test.leaf` Leaf.\");\n    let ids: Vec<_> = discover(&f.0).unwrap().into_iter().map(|r| r.id).collect();\n    assert_eq!(ids, [\"test.leaf\", \"test.root\"]);\n    f.write(\"book.toml\", \"book = 3\");\n    assert!(discover(&f.0).unwrap_err().contains(\"table\"));\n    f.write(\"book.toml\", \"[invalid\");\n    assert!(discover(&f.0).is_err());\n}\n"
     },
     {
@@ -44,5 +44,5 @@
       "contents": "fn rejects_ambiguous_or_empty_definitions() {\n    for source in [\n        \"{req}`test.rule`\",\n        \"prefix {req}`test.rule` Text.\",\n        \"# {req}`test.rule` Text.\",\n        \"{req}`test.one` Text {req}`test.two` more.\",\n        \"{req}`../bad` Text.\",\n    ] {\n        assert!(extract(\"chapter.md\", source).is_err(), \"{source}\");\n    }\n}\n"
     }
   ],
-  "justification": "Scenarios: duplicate IDs across chapters, invalid ID syntax, missing chapters, malformed TOML/non-table book/non-string src, and zero definitions. Discovery and extraction return errors rather than skipping bad chapters or accepting a vacuous result. Tests assert these fail-closed paths. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions."
+  "justification": "Scenarios: duplicate IDs across chapters, invalid ID syntax, missing chapters, malformed TOML/non-table book/non-string src, and zero definitions. Discovery and extraction return errors rather than skipping bad chapters or accepting a vacuous result. Tests assert these fail-closed paths. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions. Reviewed the cited assertions after the test edit: their code is byte-identical; only line positions moved, with no behavioral change. All 21 checker tests passed with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml."
 }

@@ -3,8 +3,8 @@
   "inputs": [
     {
       "path": "skills/language-lab/SKILL.md",
-      "line_start": 28,
-      "line_end": 28,
+      "line_start": 22,
+      "line_end": 22,
       "contents": "Establish the intended language from the conversation or ask before retrieving language-specific content. Once a database is selected, `language-lab --db PATH context` can show its languages without returning learning content. It is fine to begin a language not yet listed.\n"
     },
     {
@@ -26,5 +26,5 @@
       "contents": "4. **Language scope.** With a selected database but no intended language, read\n   unselected `context` if useful and ask which language to practice. Do not fetch\n   Greek or French content by assumption. When Japanese is chosen, use its exact\n   namespace for context even though it has no records; no registration step is\n   needed. Create its first record when useful.\n"
     }
   ],
-  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Ambiguous language triggers selection without content retrieval; a selected new language requires no registration. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Ambiguous language triggers selection without content retrieval; a selected new language requires no registration. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed. Packaging revalidation: CLI implementation and behavior tests were relocated unchanged into the root crate and rerun successfully. The distribution now uses the root Cargo package and Symposium-managed lab command. Changed installation instructions and scenario 10 were reviewed for exact-version success, missing command, old/new version, and failed setup: all failure branches stop data operations and require setup/update plus reverification. The archive test builds the actual distributed crate in an isolated directory and executes its version command. Manifest wiring/version assertions and Symposium 0.5.1 manifest validation pass. Unchanged teaching assertions and source excerpts retain their behavior; relocated ranges were extracted anew."
 }

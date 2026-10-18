@@ -21,22 +21,22 @@
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 160,
-      "line_end": 173,
+      "line_start": 164,
+      "line_end": 177,
       "contents": "fn line_ranges_preserve_endings_unicode_and_final_newline() {\n    assert_eq!(lines(\"α\\r\\nβ\\r\\nγ\", 1, 2).unwrap(), \"α\\r\\nβ\\r\\n\");\n    assert_eq!(lines(\"α\\r\\nβ\\r\\nγ\", 3, 3).unwrap(), \"γ\");\n    assert_eq!(lines(\"\\n\", 1, 1).unwrap(), \"\\n\");\n    for (text, start, end) in [\n        (\"\", 1, 1),\n        (\"a\\n\", 0, 1),\n        (\"a\\nb\", 2, 1),\n        (\"a\\n\", 2, 2),\n        (\"a\", 1, usize::MAX),\n    ] {\n        assert!(lines(text, start, end).is_err());\n    }\n}\n"
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 325,
-      "line_end": 343,
+      "line_start": 329,
+      "line_end": 347,
       "contents": "fn exact_matching_detects_line_endings_and_ignores_uncited_changes() {\n    let f = Fixture::new();\n    f.write(\"src/code.rs\", \"uncited\\nα\\r\\nβ\\r\\n\");\n    let mut evidence = f.evidence();\n    evidence[\"inputs\"][0][\"contents\"] = json!(\"α\\r\\nβ\\r\\n\");\n    f.save(&evidence);\n    assert!(f.errors().is_empty());\n    for contents in [\"α\\nβ\\n\", \"α\\r\\nβ\", \"a\\r\\nβ\\r\\n\"] {\n        evidence[\"inputs\"][0][\"contents\"] = json!(contents);\n        f.save(&evidence);\n        assert!(!f.errors().is_empty());\n    }\n    evidence[\"inputs\"][0][\"contents\"] = json!(\"α\\r\\nβ\\r\\n\");\n    f.save(&evidence);\n    f.write(\"src/code.rs\", \"changed uncited\\nα\\r\\nβ\\r\\n\");\n    assert!(f.errors().is_empty());\n    fs::remove_file(f.0.join(\"src/code.rs\")).unwrap();\n    assert!(f.errors()[0].contains(\"src/code.rs\"));\n}\n"
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 143,
-      "line_end": 157,
+      "line_start": 147,
+      "line_end": 161,
       "contents": "fn edits_to_requirement_and_source_invalidate_evidence() {\n    let f = Fixture::new();\n    f.save(&f.evidence());\n    f.write(\n        \"chapters/nested/contract.md\",\n        \"{req}`test.rule` Preserve every byte.\",\n    );\n    assert!(f.errors()[0].contains(\"requirement text differs\"));\n    f.write(\n        \"chapters/nested/contract.md\",\n        \"{req}`test.rule` Preserve **all** data.\",\n    );\n    f.write(\"src/code.rs\", \"inserted\\nfirst\\nsecond\\nthird\");\n    assert!(f.errors()[0].contains(\"no longer matches\"));\n}\n"
     }
   ],
-  "justification": "Scenarios: Unicode, CRLF versus LF, missing final newline, edited/shifted selected lines, deleted files, and changes only outside excerpts. The snapshot preserves bytes of UTF-8 line slices and comparison is exact. Tests show cited changes fail and uncited-only changes remain valid, which accurately bounds what the checker certifies. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions."
+  "justification": "Scenarios: Unicode, CRLF versus LF, missing final newline, edited/shifted selected lines, deleted files, and changes only outside excerpts. The snapshot preserves bytes of UTF-8 line slices and comparison is exact. Tests show cited changes fail and uncited-only changes remain valid, which accurately bounds what the checker certifies. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions. Reviewed the cited assertions after the test edit: their code is byte-identical; only line positions moved, with no behavioral change. All 21 checker tests passed with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml."
 }

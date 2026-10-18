@@ -27,4 +27,4 @@ A future open-plugin or Symposium package can distribute the same components. Ho
 
 ## Status of this book
 
-The tutor skill lives in `skills/language-lab/`, with its Rust CLI embedded in `cli/`. The `mdbook-language-lab` crate renders this book’s requirements; `language-lab-ci` checks their evidence. The [user’s guide](guide.md) describes installation and use, and [Design](design/README.md) defines the testable contract.
+The tutor skill lives in `skills/language-lab/`, with its Rust CLI in the root Cargo package. The `mdbook-language-lab` crate renders this book’s requirements; `language-lab-ci` checks their evidence. The [user’s guide](guide.md) describes installation and use, and [Design](design/README.md) defines the testable contract.

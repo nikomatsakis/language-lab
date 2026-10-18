@@ -21,16 +21,16 @@
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 279,
-      "line_end": 291,
+      "line_start": 283,
+      "line_end": 295,
       "contents": "fn default_source_external_links_and_nested_summary() {\n    let f = Fixture::new();\n    f.write(\"book.toml\", \"[book]\\ntitle = 'Test'\\n\");\n    f.write(\"src/SUMMARY.md\", \"# Summary\\n- [Root](root.md)\\n  - [Nested](deep/leaf.md#anchor)\\n- [Web](//example.com/book)\\n- [Mail](mailto:a@example.com)\\n- [URN](urn:example:test)\\n- [Draft]()\\n- [Anchor](#here)\\n\");\n    f.write(\"src/root.md\", \"{req}`test.root` Root.\");\n    f.write(\"src/deep/leaf.md\", \"{req}`test.leaf` Leaf.\");\n    let ids: Vec<_> = discover(&f.0).unwrap().into_iter().map(|r| r.id).collect();\n    assert_eq!(ids, [\"test.leaf\", \"test.root\"]);\n    f.write(\"book.toml\", \"book = 3\");\n    assert!(discover(&f.0).unwrap_err().contains(\"table\"));\n    f.write(\"book.toml\", \"[invalid\");\n    assert!(discover(&f.0).is_err());\n}\n"
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 380,
-      "line_end": 394,
+      "line_start": 384,
+      "line_end": 398,
       "contents": "fn parent_relative_chapters_are_allowed_only_inside_repository() {\n    let f = Fixture::new();\n    f.write(\"chapters/SUMMARY.md\", \"- [Shared](../shared/chapter.md)\");\n    f.write(\"shared/chapter.md\", \"{req}`test.shared` Shared contract.\");\n    assert_eq!(discover(&f.0).unwrap()[0].id, \"test.shared\");\n    f.write(\"book.toml\", \"[book]\\nsrc = './src/../chapters'\");\n    assert_eq!(discover(&f.0).unwrap()[0].id, \"test.shared\");\n    let other = Fixture::new();\n    let sibling = other.0.file_name().unwrap().to_str().unwrap();\n    f.write(\n        \"chapters/SUMMARY.md\",\n        &format!(\"- [Escape](../../{sibling}/chapters/nested/contract.md)\"),\n    );\n    assert!(discover(&f.0).unwrap_err().contains(\"escapes repository\"));\n}\n"
     }
   ],
-  "justification": "Scenarios: explicit/default source directory, nested local links, fragments, absent drafts, external URI schemes, unlisted files and parent-relative links. discover obtains src from TOML and only visits SUMMARY link targets; read_book resolves contained parent paths without applying the stricter evidence-input policy. The tests verify exactly the expected discovered IDs and reject repository escapes. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions."
+  "justification": "Scenarios: explicit/default source directory, nested local links, fragments, absent drafts, external URI schemes, unlisted files and parent-relative links. discover obtains src from TOML and only visits SUMMARY link targets; read_book resolves contained parent paths without applying the stricter evidence-input policy. The tests verify exactly the expected discovered IDs and reject repository escapes. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions. Reviewed the cited assertions after the test edit: their code is byte-identical; only line positions moved, with no behavioral change. All 21 checker tests passed with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml."
 }

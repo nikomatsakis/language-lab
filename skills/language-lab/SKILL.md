@@ -9,15 +9,9 @@ Teach through conversation, using persistent memory and review dates to support 
 
 ## Prepare the tool
 
-The expected CLI version is **0.1.0**. Before using the CLI for data operations, run `language-lab --version` and compare the reported version with this exact version. Reuse this check within the conversation unless the installation or skill changes. A newer version is still a mismatch.
+The expected CLI version is **0.1.0**. Use `cargo agents lab` to run the Symposium-managed executable; every `language-lab` command shown below means `cargo agents lab` with those arguments. Before data operations, run `cargo agents lab --version` and require exactly `language-lab 0.1.0`. Reuse this check within the conversation unless the installation or skill changes. A newer version is still a mismatch.
 
-If the executable is missing or differs, run:
-
-```sh
-cargo install --locked --path "<absolute path to this skill>/cli"
-```
-
-Resolve the embedded `cli` directory relative to this SKILL.md, not the current working directory. After installation, run `language-lab --version` again and require exactly `language-lab 0.1.0`. If Cargo is unavailable, installation fails, or the expected binary cannot be found on PATH, stop data operations and explain the concrete failure. Do not silently use a different version, repeatedly reinstall, or claim memory was saved. Resolve a PATH issue and verify again before proceeding.
+Symposium resolves the package's declared installation when this command runs. If the command is missing, installation fails, or the version differs, stop data operations and report the concrete failure. Ask the learner to update or enable their Language Lab Symposium package, then verify the version again before proceeding. Do not silently fall back to a different executable, repeatedly reinstall, or claim memory was saved.
 
 ## Select memory and refresh context
 

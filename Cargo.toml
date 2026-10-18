@@ -2,6 +2,9 @@
 name = "language-lab"
 version = "0.1.0"
 edition = "2021"
+description = "Persistent learning memory and review scheduling for a language tutor"
+repository = "https://github.com/nikomatsakis/language-lab"
+include = ["src/**", "tests/*.rs", "skills/language-lab/SKILL.md", "SYMPOSIUM.toml", "Cargo.lock", "README.md"]
 
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
@@ -14,3 +17,7 @@ uuid = { version = "1", features = ["v4"] }
 
 [dev-dependencies]
 tempfile = "3"
+
+[workspace]
+resolver = "3"
+members = ["language-lab-ci", "mdbook-language-lab"]

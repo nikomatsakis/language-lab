@@ -118,7 +118,11 @@ fn exact_evidence_passes_and_justification_is_not_evaluated() {
         evidence["justification"] = justification.into();
         f.save(&evidence);
         assert!(f.errors().is_empty());
-        assert!(f.cli(&["check"]).status.success());
+        assert!(
+            f.cli(&["check", "--requirement", "test.rule"])
+                .status
+                .success()
+        );
     }
 }
 

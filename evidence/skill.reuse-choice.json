@@ -3,8 +3,8 @@
   "inputs": [
     {
       "path": "skills/language-lab/SKILL.md",
-      "line_start": 24,
-      "line_end": 24,
+      "line_start": 18,
+      "line_end": 18,
       "contents": "If no database has been selected in this conversation or supplied by the host, ask the learner to select an existing database file or choose a path for a new one before issuing data commands. Reuse the selected path until the learner changes it. Do not infer a selection from a convenient file in the current directory. A fresh conversation needs a selection again unless the host supplies it.\n"
     },
     {
@@ -26,5 +26,5 @@
       "contents": "2. **Continuity and switch.** On resumption use `/tmp/greek.sqlite`, refresh its\n   selected-language context before teaching, and do not ask for the database\n   again. After the explicit switch use `/tmp/travel.sqlite` on all subsequent\n   commands; establish a language if it is unclear for that selection. In the\n   fresh thread without host selection, ask which database to use again.\n"
     }
   ],
-  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Continuing sessions reuse the selected path, explicit changes switch subsequent commands, and a fresh thread asks again. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Continuing sessions reuse the selected path, explicit changes switch subsequent commands, and a fresh thread asks again. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed. Packaging revalidation: CLI implementation and behavior tests were relocated unchanged into the root crate and rerun successfully. The distribution now uses the root Cargo package and Symposium-managed lab command. Changed installation instructions and scenario 10 were reviewed for exact-version success, missing command, old/new version, and failed setup: all failure branches stop data operations and require setup/update plus reverification. The archive test builds the actual distributed crate in an isolated directory and executes its version command. Manifest wiring/version assertions and Symposium 0.5.1 manifest validation pass. Unchanged teaching assertions and source excerpts retain their behavior; relocated ranges were extracted anew."
 }

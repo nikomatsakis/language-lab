@@ -58,15 +58,17 @@ not universal compliance by an arbitrary model or host.
    Introduce a recurring-tense-confusion convention in ordinary content as useful;
    no database migration or CLI schema change is needed. If revising earlier
    conventions or notes, use replacement and choose successor pinning deliberately.
-10. **Installation matrix.** The exact expected version is `language-lab 0.1.0`.
-    If missing, 0.0.9, or 0.2.0, install with
-    `cargo install --locked --path "/tmp/my skills/language-lab/cli"`, resolved
-    relative to the skill, then verify the version again. If already 0.1.0, skip
-    installation. If Cargo is absent or installation fails, stop data operations
-    and report the concrete failure without claiming saved memory. If installation
-    succeeds but PATH returns 0.0.9, stop data operations, resolve PATH, then
-    reverify; do not repeatedly reinstall or run the incompatible executable.
+10. **Installation matrix (re-reviewed for Symposium packaging).** Run
+    `cargo agents lab --version`, letting Symposium resolve its declared
+    installation. If it reports 0.1.0, proceed. If the command is absent, Cargo
+    is unavailable, installation fails, or it reports 0.0.9 or 0.2.0, stop data
+    operations and request package setup/update. After that, verify again.
+    Never fall back to another PATH executable or claim memory was saved on
+    failure. The installed skill's directory and current directory do not
+    determine the binary path; the managed subcommand does.
 
 No mismatches found between these scenario decisions and the skill instructions
 or reviewed skill requirements. Package/source/version synchronization is a
 separate automated check and is not claimed to have been executed in this dry run.
+
+Packaging revision: installation decisions above were reviewed by the implementing agent; the earlier independent review of teaching scenarios remains unchanged.

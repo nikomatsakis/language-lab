@@ -3,8 +3,8 @@
   "inputs": [
     {
       "path": "skills/language-lab/SKILL.md",
-      "line_start": 42,
-      "line_end": 42,
+      "line_start": 36,
+      "line_end": 36,
       "contents": "The CLI stores one kind of record with arbitrary JSON content. You may introduce and revise conventions without changing its schema. For example, `kind`, `text`, and `related_to` are optional conventions, not required or closed vocabularies. Durable learner goals and teaching preferences needed across conversations belong in active **pinned** records.\n"
     },
     {
@@ -26,5 +26,5 @@
       "contents": "9. **Durable preferences and schema.** Save the short-conversation/travel goals in\n   an active pinned record, using arbitrary JSON such as learner-notes text.\n   Introduce a recurring-tense-confusion convention in ordinary content as useful;\n   no database migration or CLI schema change is needed. If revising earlier\n   conventions or notes, use replacement and choose successor pinning deliberately.\n"
     }
   ],
-  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Durable travel goals and conversational preferences become an active pinned record with deliberate successor pinning on edits. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Durable travel goals and conversational preferences become an active pinned record with deliberate successor pinning on edits. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed. Packaging revalidation: CLI implementation and behavior tests were relocated unchanged into the root crate and rerun successfully. The distribution now uses the root Cargo package and Symposium-managed lab command. Changed installation instructions and scenario 10 were reviewed for exact-version success, missing command, old/new version, and failed setup: all failure branches stop data operations and require setup/update plus reverification. The archive test builds the actual distributed crate in an isolated directory and executes its version command. Manifest wiring/version assertions and Symposium 0.5.1 manifest validation pass. Unchanged teaching assertions and source excerpts retain their behavior; relocated ranges were extracted anew."
 }

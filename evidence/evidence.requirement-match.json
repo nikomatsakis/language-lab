@@ -9,22 +9,22 @@
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 126,
-      "line_end": 140,
+      "line_start": 130,
+      "line_end": 144,
       "contents": "fn missing_stale_and_malformed_evidence_request_revalidation() {\n    let f = Fixture::new();\n    let errors = f.errors();\n    assert!(errors[0].contains(\"test.rule\"));\n    assert!(errors[0].contains(\"revalidate this requirement using the revalidate skill\"));\n    f.write(\"evidence/test.rule.json\", \"{\");\n    assert!(f.errors()[0].contains(\"invalid evidence JSON\"));\n    let mut evidence = f.evidence();\n    evidence[\"requirement\"] = \"Old requirement\".into();\n    evidence[\"inputs\"][0][\"contents\"] = \"old contents\".into();\n    f.save(&evidence);\n    let errors = f.errors();\n    assert_eq!(errors.len(), 2);\n    assert!(errors.iter().all(|e| e.contains(\"revalidate\")));\n}\n"
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 143,
-      "line_end": 157,
+      "line_start": 147,
+      "line_end": 161,
       "contents": "fn edits_to_requirement_and_source_invalidate_evidence() {\n    let f = Fixture::new();\n    f.save(&f.evidence());\n    f.write(\n        \"chapters/nested/contract.md\",\n        \"{req}`test.rule` Preserve every byte.\",\n    );\n    assert!(f.errors()[0].contains(\"requirement text differs\"));\n    f.write(\n        \"chapters/nested/contract.md\",\n        \"{req}`test.rule` Preserve **all** data.\",\n    );\n    f.write(\"src/code.rs\", \"inserted\\nfirst\\nsecond\\nthird\");\n    assert!(f.errors()[0].contains(\"no longer matches\"));\n}\n"
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
       "line_start": 114,
-      "line_end": 123,
-      "contents": "fn exact_evidence_passes_and_justification_is_not_evaluated() {\n    let f = Fixture::new();\n    let mut evidence = f.evidence();\n    for justification in [\"\", \"This explanation is deliberately not a valid proof.\"] {\n        evidence[\"justification\"] = justification.into();\n        f.save(&evidence);\n        assert!(f.errors().is_empty());\n        assert!(f.cli(&[\"check\"]).status.success());\n    }\n}\n"
+      "line_end": 127,
+      "contents": "fn exact_evidence_passes_and_justification_is_not_evaluated() {\n    let f = Fixture::new();\n    let mut evidence = f.evidence();\n    for justification in [\"\", \"This explanation is deliberately not a valid proof.\"] {\n        evidence[\"justification\"] = justification.into();\n        f.save(&evidence);\n        assert!(f.errors().is_empty());\n        assert!(\n            f.cli(&[\"check\", \"--requirement\", \"test.rule\"])\n                .status\n                .success()\n        );\n    }\n}\n"
     }
   ],
-  "justification": "Scenarios: current exact text succeeds; old evidence wording or an edited book requirement fails. validate compares the extracted string using exact equality, and tests mutate each side independently while retaining valid evidence inputs. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions."
+  "justification": "Scenarios: current exact text succeeds; old evidence wording or an edited book requirement fails. validate compares the extracted string using exact equality, and tests mutate each side independently while retaining valid evidence inputs. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions. Revalidated exact and changed requirement text: comparison logic is unchanged; the valid-evidence test now uses targeted checking and changed-text tests still reject stale evidence. All 21 checker tests passed with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml."
 }

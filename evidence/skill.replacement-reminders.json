@@ -3,8 +3,8 @@
   "inputs": [
     {
       "path": "skills/language-lab/SKILL.md",
-      "line_start": 48,
-      "line_end": 48,
+      "line_start": 42,
+      "line_end": 42,
       "contents": "Content changes always create fresh IDs. Use replacement to rewrite, split, merge, or retire records as your understanding evolves. Scheduling changes alone preserve identity. Successors do not inherit pinning or dates: set these intentionally when replacing. Read the response's retired records, previous review dates and pin state, `needs_review_schedule`, and `reminders`; consider both scheduling and pinning before finishing the learning turn. Leaving a successor unscheduled or unpinned is permitted when deliberate. To correct pinning after creation, replace that record with a successor having the desired pin state.\n"
     },
     {
@@ -26,5 +26,5 @@
       "contents": "8. **Replacement response.** Read previous date/pin metadata and both reminders.\n   If the successor still carries durable context, replace it to set `pinned:\n   true` and intentionally supply a review interval or date. If only scheduling\n   needs adjustment, use `schedule` to preserve identity. Inspect each successful\n   result and its new IDs before claiming persistence. In the alternative where\n   no future review and no durable startup context are useful, deliberately leave\n   the successor unscheduled and unpinned, acknowledging both choices before\n   ending the turn. Reminders do not force a write.\n"
     }
   ],
-  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Both previous pin and scheduling metadata are considered; deliberate correction and deliberate unscheduling/unpinning are tested. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Both previous pin and scheduling metadata are considered; deliberate correction and deliberate unscheduling/unpinning are tested. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed. Packaging revalidation: CLI implementation and behavior tests were relocated unchanged into the root crate and rerun successfully. The distribution now uses the root Cargo package and Symposium-managed lab command. Changed installation instructions and scenario 10 were reviewed for exact-version success, missing command, old/new version, and failed setup: all failure branches stop data operations and require setup/update plus reverification. The archive test builds the actual distributed crate in an isolated directory and executes its version command. Manifest wiring/version assertions and Symposium 0.5.1 manifest validation pass. Unchanged teaching assertions and source excerpts retain their behavior; relocated ranges were extracted anew."
 }

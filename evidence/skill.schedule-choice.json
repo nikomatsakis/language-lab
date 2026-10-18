@@ -3,8 +3,8 @@
   "inputs": [
     {
       "path": "skills/language-lab/SKILL.md",
-      "line_start": 46,
-      "line_end": 46,
+      "line_start": 40,
+      "line_end": 40,
       "contents": "After practice on a scheduled record, explicitly choose whether to retain its date, change it, clear it, or replace the record with newly scheduled successors. Retaining means a deliberate choice, not overlooking the old schedule. A due record need not be practiced if the learner chooses another activity.\n"
     },
     {
@@ -26,5 +26,5 @@
       "contents": "7. **Schedule choices.** Explicitly retain the first record's current date (no\n   write needed). Reschedule the second to a deliberate later date. Clear the\n   third with `schedule ... --clear`. Replace the fourth with a split and choose\n   successor schedules intentionally. Leave the fifth due item untouched because\n   it is outside the chosen topic; being due does not force practice.\n"
     }
   ],
-  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Four cases deliberately retain, change, clear, and replace schedules; a due but unpracticed item remains untouched. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Four cases deliberately retain, change, clear, and replace schedules; a due but unpracticed item remains untouched. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed. Packaging revalidation: CLI implementation and behavior tests were relocated unchanged into the root crate and rerun successfully. The distribution now uses the root Cargo package and Symposium-managed lab command. Changed installation instructions and scenario 10 were reviewed for exact-version success, missing command, old/new version, and failed setup: all failure branches stop data operations and require setup/update plus reverification. The archive test builds the actual distributed crate in an isolated directory and executes its version command. Manifest wiring/version assertions and Symposium 0.5.1 manifest validation pass. Unchanged teaching assertions and source excerpts retain their behavior; relocated ranges were extracted anew."
 }

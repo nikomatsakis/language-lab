@@ -21,16 +21,16 @@
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 126,
-      "line_end": 140,
+      "line_start": 130,
+      "line_end": 144,
       "contents": "fn missing_stale_and_malformed_evidence_request_revalidation() {\n    let f = Fixture::new();\n    let errors = f.errors();\n    assert!(errors[0].contains(\"test.rule\"));\n    assert!(errors[0].contains(\"revalidate this requirement using the revalidate skill\"));\n    f.write(\"evidence/test.rule.json\", \"{\");\n    assert!(f.errors()[0].contains(\"invalid evidence JSON\"));\n    let mut evidence = f.evidence();\n    evidence[\"requirement\"] = \"Old requirement\".into();\n    evidence[\"inputs\"][0][\"contents\"] = \"old contents\".into();\n    f.save(&evidence);\n    let errors = f.errors();\n    assert_eq!(errors.len(), 2);\n    assert!(errors.iter().all(|e| e.contains(\"revalidate\")));\n}\n"
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 294,
-      "line_end": 322,
+      "line_start": 298,
+      "line_end": 326,
       "contents": "fn all_schema_fields_reject_wrong_types_and_missing_inputs() {\n    let f = Fixture::new();\n    for (key, value) in [\n        (\"requirement\", json!(null)),\n        (\"inputs\", json!({})),\n        (\"justification\", json!(4)),\n    ] {\n        let mut evidence = f.evidence();\n        evidence[key] = value;\n        f.save(&evidence);\n        assert!(!f.errors().is_empty(), \"{key}\");\n    }\n    for key in [\"path\", \"line_start\", \"line_end\", \"contents\"] {\n        let mut evidence = f.evidence();\n        evidence[\"inputs\"][0].as_object_mut().unwrap().remove(key);\n        f.save(&evidence);\n        assert!(!f.errors().is_empty(), \"missing {key}\");\n        let mut evidence = f.evidence();\n        evidence[\"inputs\"][0][key] = json!(null);\n        f.save(&evidence);\n        assert!(!f.errors().is_empty(), \"null {key}\");\n    }\n    let mut evidence = f.evidence();\n    evidence[\"inputs\"][0][\"extra\"] = json!(false);\n    f.save(&evidence);\n    assert!(!f.errors().is_empty());\n    fs::write(f.0.join(\"evidence/test.rule.json\"), [0xff]).unwrap();\n    assert!(!f.errors().is_empty());\n}\n"
     }
   ],
-  "justification": "Scenarios: absent per-ID file, unreadable/non-UTF8 contents, invalid JSON, and correct evidence. validate constructs evidence/ID.json and reads UTF-8 before deserialization; the tests exercise missing files, invalid bytes, and malformed syntax as failures tied to the requirement. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions."
+  "justification": "Scenarios: absent per-ID file, unreadable/non-UTF8 contents, invalid JSON, and correct evidence. validate constructs evidence/ID.json and reads UTF-8 before deserialization; the tests exercise missing files, invalid bytes, and malformed syntax as failures tied to the requirement. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions. Reviewed the cited assertions after the test edit: their code is byte-identical; only line positions moved, with no behavioral change. All 21 checker tests passed with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml."
 }

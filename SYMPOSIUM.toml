@@ -1,0 +1,16 @@
+name = "language-lab"
+
+[[skills]]
+source.path = "skills"
+
+[[installations]]
+name = "language-lab"
+source = "cargo"
+crate = "language-lab"
+version = "0.1.0"
+git = "https://github.com/nikomatsakis/language-lab"
+executable = "language-lab"
+
+[subcommand.lab]
+description = "Read and update language-learning memory and review dates"
+command = "language-lab"

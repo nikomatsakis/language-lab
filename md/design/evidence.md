@@ -34,6 +34,8 @@
 
 {req}`evidence.filter` A targeted check must check only the requested requirement and must fail if that requirement does not exist.
 
+{req}`evidence.build` After evidence validation succeeds, a full (unfiltered) check must build the root `language-lab` Cargo package under the selected repository root using `cargo build --locked`. Missing manifest or lockfile, inability to launch Cargo, and build failure must fail the check; targeted checks and extraction helpers must not build the project.
+
 ## Revalidation and automation
 
 {req}`revalidate.order` The revalidate skill must instruct the reviewer to remove existing evidence and enumerate required scenarios and edge cases before inspecting implementation or test code.

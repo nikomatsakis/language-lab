@@ -3,8 +3,8 @@
   "inputs": [
     {
       "path": "skills/language-lab/SKILL.md",
-      "line_start": 26,
-      "line_end": 26,
+      "line_start": 20,
+      "line_end": 20,
       "contents": "Before creating a database, establish the learner's timezone from available context or ask them. Then use `language-lab init PATH --timezone ZONE`; never overwrite an existing database. Keep learning databases outside this installed skill directory so updating the skill preserves them.\n"
     },
     {
@@ -26,5 +26,5 @@
       "contents": "3. **Initialization.** With a new path and known Europe/Berlin context, initialize\n   using that timezone. With no timezone context, ask before initialization.\n   If the chosen path exists, never overwrite it or delete it to make init work;\n   explain that it exists and establish whether to open that database or choose\n   another new path. Check successful initialization before claiming creation.\n"
     }
   ],
-  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Known timezone is reused; absent context triggers a question before initialization; existing paths are not overwritten. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. Known timezone is reused; absent context triggers a question before initialization; existing paths are not overwritten. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed. Packaging revalidation: CLI implementation and behavior tests were relocated unchanged into the root crate and rerun successfully. The distribution now uses the root Cargo package and Symposium-managed lab command. Changed installation instructions and scenario 10 were reviewed for exact-version success, missing command, old/new version, and failed setup: all failure branches stop data operations and require setup/update plus reverification. The archive test builds the actual distributed crate in an isolated directory and executes its version command. Manifest wiring/version assertions and Symposium 0.5.1 manifest validation pass. Unchanged teaching assertions and source excerpts retain their behavior; relocated ranges were extracted anew."
 }

@@ -1,4 +1,4 @@
-name: Requirement evidence
+name: Language Lab CI
 
 on:
   push:
@@ -25,8 +25,8 @@ jobs:
       - name: Test the shared requirement parser and renderer
         run: cargo test --locked --manifest-path mdbook-language-lab/Cargo.toml
       - name: Test the language tutor CLI
-        run: cargo test --locked --manifest-path skills/language-lab/cli/Cargo.toml
+        run: cargo test --locked -p language-lab
       - name: Test the packaged skill and version agreement
         run: python3 skills/language-lab/tests/test_package.py
-      - name: Check every requirement's evidence
+      - name: Check requirement evidence and build CLI package
         run: cargo run --locked --manifest-path language-lab-ci/Cargo.toml -- check

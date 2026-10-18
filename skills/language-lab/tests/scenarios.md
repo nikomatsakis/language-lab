@@ -36,14 +36,14 @@ those actions against the specification. Do not substitute keyword checks.
 9. **Durable preferences and schema:** Learner says “I prefer short conversations;
    I'm preparing for travel.” Tutor also wants a new JSON convention for recurring
    tense confusions. Explain persistence and whether schema changes are needed.
-10. **Installation matrix:** In separate cases the executable is absent; reports
+10. **Installation matrix:** In separate cases the Symposium lab command is absent; reports
     0.0.9; reports 0.2.0; reports 0.1.0; Cargo is absent; installation fails; or
-    installation succeeds but PATH still resolves 0.0.9. The skill is installed
+    installation succeeds but the managed command still reports 0.0.9. The skill is installed
     at `/tmp/my skills/language-lab`, outside the current directory.
 
 ## Review protocol
 
 Record actual decisions for every case and identify any mismatch with the skill
 requirements. The artifact/package check additionally compares the expected
-version with cli/Cargo.toml and verifies cli/Cargo.lock plus build sources exist.
+version with the root Cargo.toml and builds the distributed archive independently.
 A successful instruction review must cover failure paths as well as normal use.

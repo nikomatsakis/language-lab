@@ -1,15 +1,15 @@
 # User’s guide
 
-The tutor skill is in `skills/language-lab/SKILL.md`. Make that directory available to your agent’s skill loader. It includes the CLI source and instructions to check its exact version before use.
+The tutor skill is in `skills/language-lab/SKILL.md`. Make that directory available to your agent’s skill loader. The root Cargo package includes the CLI, skill, and `SYMPOSIUM.toml`. With the package enabled in Symposium, the skill uses `cargo agents lab` to resolve and run its managed CLI.
 
 With Rust/Cargo and a C compiler available, you can also install the CLI directly from the repository root:
 
 ```sh
-cargo install --locked --path skills/language-lab/cli
+cargo install --locked --path .
 language-lab --version
 ```
 
-The current skill expects `language-lab 0.1.0`. SQLite is compiled into the executable; no separate SQLite installation is needed. Keep your learning database outside the installed skill directory. The skill reinstalls when the version differs and verifies the result before data operations.
+The current skill expects `language-lab 0.1.0`. SQLite is compiled into the executable; no separate SQLite installation is needed. Keep your learning database outside the installed skill directory. The skill verifies the managed command’s version before data operations and asks you to update the Symposium package if it differs. The direct `language-lab` commands below can also be invoked as `cargo agents lab`.
 
 ## Choose your learning database
 

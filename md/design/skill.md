@@ -38,12 +38,14 @@ A new thread requires selecting the database again unless the host supplies that
 
 ## Distribution and installation
 
-{req}`skill.package` The main tutor skill must live under `skills/language-lab/` and include a Cargo project at `skills/language-lab/cli/` with its lockfile and all source needed to build the CLI.
+{req}`skill.package` The root `language-lab` Cargo package must include its CLI source, lockfile, `SYMPOSIUM.toml`, and `skills/language-lab/SKILL.md` in its distributable archive and build independently of the repository workspace.
 
-{req}`skill.version-check` Before using the CLI, the skill must instruct the tutor to compare `language-lab --version` against the exact package version expected by the skill.
+{req}`skill.version-check` Before using the CLI, the skill must instruct the tutor to compare `cargo agents lab --version` against the exact package version expected by the skill.
 
-{req}`skill.install` If the binary is missing or its version differs, the skill must instruct the tutor to run `cargo install --locked --path` pointing to its embedded project.
+{req}`skill.install` The skill must instruct the tutor to invoke the Symposium-managed `cargo agents lab` command, which resolves its declared installation, and to request package setup or update if the command is unavailable or its version differs.
 
 {req}`skill.install-verify` After installation, the skill must instruct the tutor to verify the exact binary version and stop data operations if installation fails or the expected version is not available.
 
-{req}`skill.version-sync` The version expected by the skill must match the embedded Cargo package version.
+{req}`skill.version-sync` The version expected by the skill must match the root Cargo package version.
+
+{req}`skill.symposium` The Symposium manifest must expose the tutor skill and a `lab` subcommand backed by an installation of the `language-lab` crate from this repository, with the installation version matching the Cargo package version.

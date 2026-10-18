@@ -15,10 +15,10 @@
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 362,
-      "line_end": 369,
+      "line_start": 366,
+      "line_end": 373,
       "contents": "fn requirement_trims_only_outer_whitespace() {\n    let req = extract(\n        \"chapter.md\",\n        \"{req}`test.rule`  First **word**.  \\r\\nSecond line.  \\r\\n\\r\\nSeparate rationale.\",\n    )\n    .unwrap();\n    assert_eq!(req[0].requirement, \"First **word**.  \\r\\nSecond line.\");\n}\n"
     }
   ],
-  "justification": "Scenarios: multi-line Markdown, formatting, reference roles, trailing whitespace, CRLF, and following rationale. The paragraph source range is sliced after the role and trim removes only outer whitespace. Exact string assertions preserve internal Markdown and line breaks while excluding the next paragraph. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions."
+  "justification": "Scenarios: multi-line Markdown, formatting, reference roles, trailing whitespace, CRLF, and following rationale. The paragraph source range is sliced after the role and trim removes only outer whitespace. Exact string assertions preserve internal Markdown and line breaks while excluding the next paragraph. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions. Reviewed the cited assertions after the test edit: their code is byte-identical; only line positions moved, with no behavioral change. All 21 checker tests passed with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml."
 }

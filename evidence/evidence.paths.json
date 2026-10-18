@@ -21,22 +21,22 @@
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 201,
-      "line_end": 208,
+      "line_start": 205,
+      "line_end": 212,
       "contents": "fn input_files_must_exist_be_utf8_and_stay_inside_repository() {\n    let f = Fixture::new();\n    for path in [\"missing.rs\", \"../outside\", \"/etc/passwd\", \"\"] {\n        assert!(snapshot(&f.0, path, 1, 1).is_err());\n    }\n    fs::write(f.0.join(\"binary\"), [0xff]).unwrap();\n    assert!(snapshot(&f.0, \"binary\", 1, 1).is_err());\n}\n"
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 212,
-      "line_end": 221,
+      "line_start": 216,
+      "line_end": 225,
       "contents": "fn escaping_symlinks_are_rejected() {\n    let f = Fixture::new();\n    let outside = Fixture::new();\n    std::os::unix::fs::symlink(outside.0.join(\"src/code.rs\"), f.0.join(\"escape\")).unwrap();\n    assert!(\n        snapshot(&f.0, \"escape\", 1, 1)\n            .unwrap_err()\n            .contains(\"escapes\")\n    );\n}\n"
     },
     {
       "path": "language-lab-ci/tests/evidence.rs",
-      "line_start": 373,
-      "line_end": 377,
+      "line_start": 377,
+      "line_end": 381,
       "contents": "fn repository_contained_symlink_is_allowed() {\n    let f = Fixture::new();\n    std::os::unix::fs::symlink(\"src/code.rs\", f.0.join(\"inside\")).unwrap();\n    assert_eq!(snapshot(&f.0, \"inside\", 1, 1).unwrap().contents, \"first\\n\");\n}\n"
     }
   ],
-  "justification": "Scenarios: normal relative file, empty/absolute/parent paths, missing files, outside symlink and contained symlink. contained rejects forbidden components before canonicalizing and checks the resolved prefix. Tests cover both rejection of escapes and acceptance of a safe internal symlink. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions."
+  "justification": "Scenarios: normal relative file, empty/absolute/parent paths, missing files, outside symlink and contained symlink. contained rejects forbidden components before canonicalizing and checks the resolved prefix. Tests cover both rejection of escapes and acceptance of a safe internal symlink. Validated with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml (20 tests passing). Each cited test uses isolated fixture files and asserts outcomes, not merely the presence of instructions. Reviewed the cited assertions after the test edit: their code is byte-identical; only line positions moved, with no behavioral change. All 21 checker tests passed with cargo test --locked --offline --manifest-path language-lab-ci/Cargo.toml."
 }

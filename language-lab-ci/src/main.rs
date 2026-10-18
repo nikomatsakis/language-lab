@@ -1,7 +1,7 @@
 use language_lab_ci::{discover, snapshot, validate};
 use std::{collections::BTreeMap, path::PathBuf};
 
-const HELP: &str = "language-lab-ci check [--root PATH] [--requirement ID]\nlanguage-lab-ci requirements [--root PATH] [--requirement ID]\nlanguage-lab-ci input [--root PATH] --path FILE --line-start N --line-end N\n\nDefaults to check in the current directory. Ranges are one-based and inclusive.";
+const HELP: &str = "language-lab-ci check [--root PATH] [--requirement ID]\nlanguage-lab-ci requirements [--root PATH] [--requirement ID]\nlanguage-lab-ci input [--root PATH] --path FILE --line-start N --line-end N\n\nDefaults to check in the current directory. Full checks also build the root language-lab package with cargo build --locked. Targeted checks validate evidence only. Ranges are one-based and inclusive.";
 
 fn run() -> Result<(), String> {
     let mut args = std::env::args().skip(1).peekable();
@@ -74,6 +74,9 @@ fn run() -> Result<(), String> {
             requirements.len()
         ));
     }
+    if !options.contains_key("--requirement") {
+        build_skill(&root)?;
+    }
     println!(
         "Evidence is current for {} requirement(s). Justifications were not evaluated.",
         requirements.len()
@@ -86,4 +89,29 @@ fn main() {
         eprintln!("{error}");
         std::process::exit(1);
     }
+}
+
+fn build_skill(root: &std::path::Path) -> Result<(), String> {
+    let project = root.to_path_buf();
+    for file in ["Cargo.toml", "Cargo.lock"] {
+        if !project.join(file).is_file() {
+            return Err(format!(
+                "Skill build failed: missing {}",
+                project.join(file).display()
+            ));
+        }
+    }
+    let status = std::process::Command::new("cargo")
+        .current_dir(root)
+        .args(["build", "--locked", "--manifest-path", "Cargo.toml"])
+        .stdout(std::process::Stdio::inherit())
+        .stderr(std::process::Stdio::inherit())
+        .status()
+        .map_err(|e| format!("Skill build failed: could not run cargo: {e}"))?;
+    if !status.success() {
+        return Err(format!(
+            "Skill build failed: cargo build --locked exited with {status}"
+        ));
+    }
+    Ok(())
 }

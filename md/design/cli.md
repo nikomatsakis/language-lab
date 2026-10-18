@@ -38,7 +38,7 @@ language-lab --db PATH --language LANG schedule ID...
 
 {req}`cli.no-extra-operands` Missing required arguments, unknown options, and unexpected positional arguments must fail without database mutation.
 
-{req}`cli.version` `language-lab --version` must print `language-lab VERSION`, with VERSION equal to the embedded Cargo package version, and exit zero without opening a database.
+{req}`cli.version` `language-lab --version` must print `language-lab VERSION`, with VERSION equal to the Cargo package version, and exit zero without opening a database.
 
 {req}`cli.operands` `get` and `schedule` must require at least one ID.
 

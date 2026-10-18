@@ -3,8 +3,8 @@
   "inputs": [
     {
       "path": "skills/language-lab/SKILL.md",
-      "line_start": 44,
-      "line_end": 44,
+      "line_start": 38,
+      "line_end": 38,
       "contents": "Record meaningful practice as an ordinary record describing what the learner actually demonstrated and any hints that materially affected the result. Distinguish independent recall from success after a hint. An observation about an existing learning record must reference the ID actually practiced, even when you subsequently split or replace that record. References inside content are your responsibility; the CLI neither validates nor rewrites them.\n"
     },
     {
@@ -26,5 +26,5 @@
       "contents": "6. **Practice and lineage.** Record that recognition was independent but production\n   required a hint; reference `1241ab`, the version practiced. Split using\n   replacement with explicit intervals: for example recognition in seven days,\n   production in two. These are pedagogical choices, not fixed algorithm rules.\n   Store the original practice ID even after successors receive new IDs. Inspect\n   returned scheduling and pin reminders before finishing; refresh context before\n   the teaching response. The split's new dates deliberately supersede the old\n   record's schedule rather than inheriting it.\n"
     }
   ],
-  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. The actual response distinguishes independent recognition from hinted production and describes the observed evidence. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed."
+  "justification": "Checklist was enumerated before implementation inspection and covers the relevant first-use, continuing, boundary, and failure scenarios. The actual response distinguishes independent recognition from hinted production and describes the observed evidence. The independent spec-review subagent read only the skill and raw scenario inputs, produced the included actual decisions, and found no mismatch. I compared those decisions to the requirement and instructions. This is a scenario-based test of the shipped instruction contract, not a promise that every model complies; no learner database writes were executed. Packaging revalidation: CLI implementation and behavior tests were relocated unchanged into the root crate and rerun successfully. The distribution now uses the root Cargo package and Symposium-managed lab command. Changed installation instructions and scenario 10 were reviewed for exact-version success, missing command, old/new version, and failed setup: all failure branches stop data operations and require setup/update plus reverification. The archive test builds the actual distributed crate in an isolated directory and executes its version command. Manifest wiring/version assertions and Symposium 0.5.1 manifest validation pass. Unchanged teaching assertions and source excerpts retain their behavior; relocated ranges were extracted anew."
 }
