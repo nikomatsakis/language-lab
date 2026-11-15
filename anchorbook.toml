@@ -1,0 +1,19 @@
+schema-version = 1
+
+[project]
+phase = "prototyping"
+
+[book]
+source = "md"
+output = "book"
+mdbook = "book.toml"
+
+[book.sections]
+design = "design/README.md"
+authority = "authority/README.md"
+implementation-roadmaps = "roadmaps/README.md"
+
+[verification]
+sources = ["src", "tests"]
+output = "target/anchorbook-verify"
+runners = ["nextest"]

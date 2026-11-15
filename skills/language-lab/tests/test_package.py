@@ -33,7 +33,6 @@ class PackageTests(unittest.TestCase):
             for path in ["Cargo.lock", "src/main.rs", "src/lib.rs",
                          "SYMPOSIUM.toml", "skills/language-lab/SKILL.md"]:
                 self.assertTrue((extracted / path).is_file(), path)
-            self.assertFalse((extracted / "language-lab-ci").exists())
             self.assertFalse((extracted / ".agents").exists())
             skill = (extracted / "skills/language-lab/SKILL.md").read_text()
             expected = re.search(r"The expected CLI version is \*\*([^*]+)\*\*", skill)

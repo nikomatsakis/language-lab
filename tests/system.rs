@@ -35,6 +35,14 @@ fn review(days: u64) -> Option<Review> {
         on: None,
     })
 }
+/// anchorbook: A-cli-init-response#behavior
+/// anchorbook: A-database-sqlite#behavior
+/// anchorbook: A-database-init-exclusive#behavior
+/// anchorbook: A-database-open-existing#behavior
+/// anchorbook: A-database-timezone#behavior
+/// anchorbook: A-database-version#behavior
+/// anchorbook: A-database-single-learner#behavior
+/// anchorbook: A-database-invalid#behavior
 #[test]
 fn storage_creation_validation_and_persistence() {
     let dir = tempfile::tempdir().unwrap();
@@ -87,6 +95,18 @@ fn storage_creation_validation_and_persistence() {
     );
     assert_eq!(std::fs::read(&other).unwrap(), bytes);
 }
+/// anchorbook: A-language-namespace#behavior
+/// anchorbook: A-language-exact#behavior
+/// anchorbook: A-language-implicit#behavior
+/// anchorbook: A-record-identity-unique#behavior
+/// anchorbook: A-record-identity-format#behavior
+/// anchorbook: A-record-identity-collision#behavior
+/// anchorbook: A-record-content-json#behavior
+/// anchorbook: A-record-content-opaque#behavior
+/// anchorbook: A-record-content-roundtrip#behavior
+/// anchorbook: A-record-created#behavior
+/// anchorbook: A-record-envelope#behavior
+/// anchorbook: A-record-pin-default#behavior
 #[test]
 fn json_roundtrip_scope_and_collision() {
     let (_dir, mut db) = setup("UTC");
@@ -150,6 +170,24 @@ fn json_roundtrip_scope_and_collision() {
         json!(["EL", "el"])
     );
 }
+/// anchorbook: A-replace-fresh-ids#behavior
+/// anchorbook: A-replace-backlinks#behavior
+/// anchorbook: A-replace-retire#behavior
+/// anchorbook: A-replace-event#behavior
+/// anchorbook: A-replace-no-inheritance#behavior
+/// anchorbook: A-replace-successor-review#behavior
+/// anchorbook: A-replace-unscheduled-valid#behavior
+/// anchorbook: A-replace-response-created#behavior
+/// anchorbook: A-replace-response-retired#behavior
+/// anchorbook: A-replace-response-unscheduled#behavior
+/// anchorbook: A-replace-response-review-reminder#behavior
+/// anchorbook: A-replace-response-pin-reminder#behavior
+/// anchorbook: A-replace-response-reminders#behavior
+/// anchorbook: A-record-content-immutable#behavior
+/// anchorbook: A-record-active#behavior
+/// anchorbook: A-record-history-readable#behavior
+/// anchorbook: A-record-pin-explicit#behavior
+/// anchorbook: A-record-pin-immutable#behavior
 #[test]
 fn replacement_lifecycle_handoff_events_and_immutable_history() {
     let (dir, mut db) = setup("UTC");
@@ -225,6 +263,13 @@ fn replacement_lifecycle_handoff_events_and_immutable_history() {
     assert_eq!(serde_json::from_str::<Value>(&pred).unwrap(), json!([n]));
     assert_eq!(succ, "[]");
 }
+/// anchorbook: A-replace-types#behavior
+/// anchorbook: A-replace-input#behavior
+/// anchorbook: A-replace-nonempty#behavior
+/// anchorbook: A-replace-unique-inputs#behavior
+/// anchorbook: A-replace-active-inputs#behavior
+/// anchorbook: A-replace-atomic#behavior
+/// anchorbook: A-cli-strict-envelope#behavior
 #[test]
 fn invalid_requests_and_atomic_failures() {
     let (dir, mut db) = setup("UTC");
@@ -283,6 +328,7 @@ fn invalid_requests_and_atomic_failures() {
         "record_retired"
     );
 }
+/// anchorbook: A-replace-concurrent#behavior
 #[test]
 fn concurrent_replacement_has_one_winner() {
     let (dir, mut db) = setup("UTC");
@@ -319,6 +365,16 @@ fn concurrent_replacement_has_one_winner() {
         "record_retired"
     );
 }
+/// anchorbook: A-time-today#behavior
+/// anchorbook: A-time-relative#behavior
+/// anchorbook: A-time-interval-domain#behavior
+/// anchorbook: A-time-date-format#behavior
+/// anchorbook: A-time-overflow#behavior
+/// anchorbook: A-time-due#behavior
+/// anchorbook: A-schedule-one-date#behavior
+/// anchorbook: A-schedule-identity#behavior
+/// anchorbook: A-schedule-overwrite#behavior
+/// anchorbook: A-schedule-clear#behavior
 #[test]
 fn calendar_days_dates_and_schedule_identity() {
     for (zone, now, today, next) in [
@@ -420,6 +476,10 @@ fn calendar_days_dates_and_schedule_identity() {
         .is_err());
     assert_eq!(record(&db, "el", &id), before);
 }
+/// anchorbook: A-schedule-active#behavior
+/// anchorbook: A-schedule-atomic#behavior
+/// anchorbook: A-schedule-response#behavior
+/// anchorbook: A-schedule-no-auto-review#behavior
 #[test]
 fn scheduling_atomic_and_passive_reads() {
     let (dir, mut db) = setup("UTC");
@@ -471,6 +531,27 @@ fn scheduling_atomic_and_passive_reads() {
     );
     assert_eq!(record(&db, "el", &a), before);
 }
+/// anchorbook: A-get-exact#behavior
+/// anchorbook: A-get-missing#behavior
+/// anchorbook: A-list-active-default#behavior
+/// anchorbook: A-list-retired#behavior
+/// anchorbook: A-list-due#behavior
+/// anchorbook: A-list-incompatible#behavior
+/// anchorbook: A-list-search#behavior
+/// anchorbook: A-list-intersection#behavior
+/// anchorbook: A-list-pagination#behavior
+/// anchorbook: A-list-cursor#behavior
+/// anchorbook: A-list-cursor-invalid#behavior
+/// anchorbook: A-list-cursor-database#behavior
+/// anchorbook: A-context-clock#behavior
+/// anchorbook: A-context-unselected#behavior
+/// anchorbook: A-context-pinned#behavior
+/// anchorbook: A-context-due#behavior
+/// anchorbook: A-context-recent#behavior
+/// anchorbook: A-context-continuation#behavior
+/// anchorbook: A-context-pin-limit#behavior
+/// anchorbook: A-context-read-only#behavior
+/// anchorbook: A-context-shape#behavior
 #[test]
 fn queries_pagination_and_context() {
     let (dir, mut db) = setup("Europe/Berlin");
@@ -656,6 +737,9 @@ fn queries_pagination_and_context() {
         2
     );
 }
+/// anchorbook: A-list-since#behavior
+/// anchorbook: A-list-order#behavior
+/// anchorbook: A-list-due-order#behavior
 #[test]
 fn local_since_and_order_across_instants() {
     let (dir, mut db) = setup("Europe/Berlin");
@@ -698,6 +782,7 @@ fn local_since_and_order_across_instants() {
         old
     );
 }
+/// anchorbook: A-schedule-entry#behavior
 #[test]
 fn review_null_keys_are_not_missing_keys() {
     for review in [
@@ -712,6 +797,10 @@ fn review_null_keys_are_not_missing_keys() {
         .is_err());
     }
 }
+/// anchorbook: A-context-languages#behavior
+/// anchorbook: A-replace-cancel-review#behavior
+/// anchorbook: A-language-isolation#behavior
+/// anchorbook: A-language-empty#behavior
 #[test]
 fn scope_context_empty_and_events_preserve_handoff() {
     let (dir, mut db) = setup("UTC");

@@ -31,6 +31,20 @@ fn failure(out: Output, code: &str) {
     assert_eq!(v["error"]["code"], code);
     assert!(v["error"]["message"].is_string());
 }
+/// anchorbook: A-schedule-mode#behavior
+/// anchorbook: A-cli-database-explicit#behavior
+/// anchorbook: A-cli-language-required#behavior
+/// anchorbook: A-cli-no-prompt#behavior
+/// anchorbook: A-cli-json-output#behavior
+/// anchorbook: A-cli-success-status#behavior
+/// anchorbook: A-cli-error#behavior
+/// anchorbook: A-cli-file-input#behavior
+/// anchorbook: A-cli-stdin-input#behavior
+/// anchorbook: A-cli-help#behavior
+/// anchorbook: A-cli-no-extra-operands#behavior
+/// anchorbook: A-cli-version#behavior
+/// anchorbook: A-cli-operands#behavior
+/// anchorbook: A-cli-error-codes#behavior
 #[test]
 fn subprocess_contract() {
     let dir = tempfile::tempdir().unwrap();
@@ -240,6 +254,8 @@ fn arbitrary_precision_json_roundtrip() {
         );
     }
 }
+/// anchorbook: A-list-limit#behavior
+/// anchorbook: A-context-limit#behavior
 #[test]
 fn default_page_size_is_twenty_for_list_and_context() {
     let dir = tempfile::tempdir().unwrap();

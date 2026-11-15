@@ -1,3 +1,2 @@
 [alias]
-ci = "run --locked -p language-lab-ci --"
 lab = "run --locked -p language-lab --"

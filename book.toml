@@ -4,9 +4,6 @@ authors = []
 language = "en"
 src = "md"
 
-[preprocessor.language-lab]
-command = "cargo run --quiet --locked --manifest-path mdbook-language-lab/Cargo.toml --"
-renderers = ["html"]
-
-[output.html]
-additional-css = ["theme/requirements.css"]
+[preprocessor.anchorbook]
+command = "anchorbook md"
+config = "anchorbook.toml"

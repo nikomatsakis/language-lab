@@ -1,0 +1,37 @@
+name: Language Lab CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  RUSTUP_TOOLCHAIN: stable
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install stable Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Install pinned Anchor Book
+        run: cargo install --git https://github.com/anchor-book/anchor-book --rev 9689b00416fd577bfb68a02f1fa310f6088404cf --locked anchor-book
+      - name: Install verification runner
+        run: cargo install cargo-nextest --version 0.9.151 --locked
+      - name: Verify Anchor Book criteria
+        run: anchorbook verify --config anchorbook.toml
+      - name: Test the language tutor CLI
+        run: cargo test --locked -p language-lab
+      - name: Test the packaged skill and version agreement
+        run: python3 skills/language-lab/tests/test_package.py
+      - name: Check Anchor Book and build CLI package
+        run: |
+          anchorbook check --config anchorbook.toml
+          cargo build --locked -p language-lab

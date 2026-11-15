@@ -21,16 +21,14 @@ From the repository root:
 
 ```sh
 cargo lab --help
-cargo ci
+anchorbook check --config anchorbook.toml
 cargo test --workspace --locked
 ```
 
-`cargo lab` aliases `cargo run --locked -p language-lab --`; `cargo ci` aliases
-`cargo run --locked -p language-lab-ci --`. Arguments are forwarded to the tool,
-for example `cargo ci check --requirement skill.package`.
+`cargo lab` aliases `cargo run --locked -p language-lab --`.
+Install the pinned Anchor Book engine using [project guidance](md/working.md).
 
-The root crate ships the CLI, skill, and `SYMPOSIUM.toml` together. The package
-has no dependency on the repository's supporting workspace crates.
+The root crate ships the CLI, skill, and `SYMPOSIUM.toml` together. The package includes the CLI and tutor skill.
 
 ## Symposium
 
@@ -50,17 +48,12 @@ cargo agents plugin validate SYMPOSIUM.toml --no-check-crates
 
 ```sh
 cargo test --locked -p language-lab
-cargo test --locked --manifest-path mdbook-language-lab/Cargo.toml
-cargo test --locked --manifest-path language-lab-ci/Cargo.toml
 python3 skills/language-lab/tests/test_package.py
-cargo run --locked --manifest-path language-lab-ci/Cargo.toml -- check
+anchorbook check --config anchorbook.toml
 mdbook build
 ```
 
-Evidence records bind requirement text to reviewed source and test excerpts.
-When they become stale, use the [revalidate skill](.agents/skills/revalidate/SKILL.md).
-The freshness checker does not judge semantic correctness; the reviewer does.
-
-The GitHub Actions workflow runs these CI checks on pushes and pull requests.
-The full `language-lab-ci check` also builds the root CLI with `cargo build
---locked`; `check --requirement ID` checks only that requirement’s evidence.
+The CLI specification uses Anchor Book. See [project guidance](md/working.md)
+for the pinned engine installation and checks, and the
+[identity mapping](md/roadmaps/README.md) for the migration from the former
+requirement system.
