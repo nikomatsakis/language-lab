@@ -34,4 +34,3 @@ Their acceptance carries forward that baseline.
 > **`R-tutor-continuity`** (accepted): **Continuity and truthful tutoring observations**
 > Statement: The packaged skill must refresh context, respect learner choices, preserve demonstrated practice and hints, and use a compatible managed CLI installation.
 > Source: The existing tutor skill and distribution contract.
-
