@@ -57,3 +57,10 @@ The CLI specification uses Anchor Book. See [project guidance](md/working.md)
 for the pinned engine installation and checks, and the
 [identity mapping](md/roadmaps/README.md) for the migration from the former
 requirement system.
+
+## End-to-end tests
+
+The opt-in [Symposium/Codex harness](tests/e2e/README.md) creates an isolated home,
+installs the local package through Symposium, and can run a two-turn Spanish
+tutoring smoke test under sandbox-runtime. Start with its credential-free
+installation mode before running model-backed conversation tests.

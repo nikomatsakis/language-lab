@@ -6,3 +6,6 @@ target/
 
 # macOS directory metadata.
 .DS_Store
+
+# Python test harness bytecode.
+__pycache__/
