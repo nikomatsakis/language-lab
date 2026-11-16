@@ -11,5 +11,7 @@
   - [CLI contract](design/cli.md)
   - [Tutor skill](design/skill.md)
 - [Authority](authority/README.md)
+- [Requests for Discussion](rfds/index.md)
+  - [Hosted tutor](rfds/hosted-tutor.md)
 - [Implementation roadmaps](roadmaps/README.md)
   - [CLI verification](roadmaps/cli-verification.md)

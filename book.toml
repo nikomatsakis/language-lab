@@ -7,3 +7,13 @@ src = "md"
 [preprocessor.anchorbook]
 command = "anchorbook md"
 config = "anchorbook.toml"
+before = ["mermaid"]
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
+
+[output]
+
+[output.html]
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
+additional-css = ["mermaid-expand.css"]
