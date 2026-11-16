@@ -1,5 +1,0 @@
-# Cargo build output when this crate is used independently.
-/target/
-
-# macOS directory metadata.
-.DS_Store

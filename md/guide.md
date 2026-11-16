@@ -33,7 +33,7 @@ language-lab --db "$HOME/Languages.sqlite" --language el context
 
 The tutor receives the current time, pinned context, recent records, and due reviews. It can offer a brief orientation or answer your immediate question. Reading context does not count as practice and does not reschedule anything.
 
-You can continue an old chat or start a fresh one. In a fresh chat, select the same file to recover your learning memory. The skill refreshes context before each learning turn, including turns in an old chat; see {skill.context}`the refresh requirement`.
+You can continue an old chat or start a fresh one. In a fresh chat, select the same file to recover your learning memory. The skill refreshes context before each learning turn, including turns in an old chat; see [the refresh requirement](design/skill.md#A-skill-context).
 
 ## Store learning memory
 
@@ -132,61 +132,29 @@ There is no separate notebook or practice command. The tutor reads and changes a
 
 ## Build this book
 
-From the repository root, with Rust/Cargo and mdBook installed:
+Install the pinned Anchor Book engine and mdBook version described in
+[Working on Language Lab](working.md), then run from the repository root:
 
 ```sh
-cargo test --locked --manifest-path mdbook-language-lab/Cargo.toml
+anchorbook check --config anchorbook.toml
 mdbook build
 mdbook serve --open
 ```
 
-The configured preprocessor command builds and runs the local crate automatically. Cargo needs dependency access on the first build; rendered badges need no network access. The output is in `book/`. See [Requirement rendering](design/rendering.md) for authoring syntax.
+The generated book is written to `book/`.
 
 ## Publish with GitHub Pages
 
-The `.github/workflows/book.yml` workflow tests the requirement renderer and
-builds the book on pull requests. Pushes to the repository’s default branch
-publish the generated `book/` directory to GitHub Pages. It can also be run
-manually from the default branch using **Actions → Publish book → Run workflow**.
+The `.github/workflows/book.yml` workflow installs the pinned Anchor Book engine
+and mdBook 0.5.4, then builds the book on pull requests. Pushes to the default
+branch publish `book/` to GitHub Pages. In repository Settings, select GitHub
+Actions as the Pages source. The deployment reports its URL through the
+`github-pages` environment.
 
-To activate it:
+## Verification
 
-1. Put this book directory at the root of a GitHub repository. Commit
-   `book.toml`, `md/`, `theme/`, `.github/`, and the renderer crate’s source and
-   `Cargo.lock`. The renderer must be included as ordinary source files, not an
-   unconfigured nested Git repository; do not commit `book/` or Cargo’s `target/`.
-2. In the repository’s **Settings → Pages → Build and deployment**, select
-   **GitHub Actions** as the source.
-3. Push to the default branch or run the workflow manually. The deployment job
-   reports the published URL through the `github-pages` environment.
-
-The workflow pins mdBook to 0.5.4, builds with stable Rust, and uses the Pages
-configuration to determine the deployed base path. Pull requests build without
-publishing. No personal access token or separate deployment branch is required.
-
-See [GitHub’s custom Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
-for repository setup.
-
-## Validate requirement evidence
-
-The `language-lab-ci` utility checks whether recorded implementation and test
-reviews are still current:
-
-```sh
-cargo run --locked --manifest-path language-lab-ci/Cargo.toml -- check
-```
-
-Each requirement needs an `evidence/REQUIREMENT_ID.json` file containing its exact
-text, source/test line excerpts, and a justification. CI compares the text and
-excerpts; it deliberately does not evaluate the justification. Missing evidence
-or changed text fails the check and requests revalidation.
-
-Use the repository’s **revalidate** skill to perform that review. It first
-requires a scenario and edge-case checklist, then inspection of implementation
-and tests. If anything is missing, the reviewer leaves the evidence file absent
-and reports the gaps. Do not regenerate snapshots merely to silence CI.
-
-The checker reads requirement paragraphs from chapters listed in `SUMMARY.md`.
-Its `requirements` command prints the extracted text, and its `input` command
-produces exact line-range snapshots. Run `--help` for their arguments. The
-**Requirement evidence** workflow is independent of Pages publication; missing or stale evidence must be revalidated before it passes.
+Run `cargo test --workspace --locked` for the CLI and storage tests and
+`python3 skills/language-lab/tests/test_package.py` for package validation.
+Anchor Book structural checking runs in CI. Linked tests run through Anchor Book verification. Manual review assessments
+and the engine’s review limitations are recorded in the
+[implementation roadmap](roadmaps/README.md).

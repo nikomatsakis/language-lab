@@ -1,7 +1,8 @@
 # Summary
 
 - [Introduction](introduction.md)
-- [User’s guide](guide.md)
+- [User's guide](guide.md)
+- [Working on Language Lab](working.md)
 - [Design](design/README.md)
   - [Database and records](design/records.md)
   - [Replacement and retirement](design/replacement.md)
@@ -9,5 +10,6 @@
   - [Queries and context](design/queries.md)
   - [CLI contract](design/cli.md)
   - [Tutor skill](design/skill.md)
-  - [Requirement rendering](design/rendering.md)
-  - [Requirement evidence](design/evidence.md)
+- [Authority](authority/README.md)
+- [Implementation roadmaps](roadmaps/README.md)
+  - [CLI verification](roadmaps/cli-verification.md)
